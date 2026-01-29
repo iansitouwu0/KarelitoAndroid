@@ -1,0 +1,176 @@
+import 'package:flutter/material.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+ 
+  @override
+ 
+  Widget build(BuildContext context) {
+ 
+    return  Scaffold(
+    body: LayoutBuilder(
+    builder: (context, constraints) {
+      final height = constraints.maxHeight;
+
+      return Container(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('../assets/home/homeBg.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          children: [
+            SizedBox(height: height * 0.12), 
+            Image.asset(
+              '../assets/home/homeTitle.png',
+              width: height * 0.8, 
+              fit: BoxFit.contain,
+            ),
+
+            SizedBox(height: height * 0.12),
+
+            SizedBox(
+              width: height * 0.45,
+              child: ElevatedButton(
+                onPressed: () {
+                  
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(
+                    vertical: height * 0.04,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  textStyle: TextStyle(
+                    fontSize: height * 0.06,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: const Text('Jugar'),
+              ),
+            ),
+            const Spacer(), 
+          ],
+        ),
+      );
+    },
+  ),
+);
+  }
+}
+
+
+
+
+import 'package:flutter/material.dart';
+import '../../../shared/views/views.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+ 
+  @override
+ 
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    return AdaptativeScreen(
+      backgroundImage: '../assets/home/homeBg.jpg',
+
+      titleImage: '../assets/home/homeTitle.png',
+      
+      children: [
+                      SizedBox(
+              width: height * 0.45,
+              child: ElevatedButton(
+                onPressed: () {
+                  
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(
+                    vertical: height * 0.04,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  textStyle: TextStyle(
+                    fontSize: height * 0.06,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: const Text('Jugar'),
+              ),
+            ),
+            const Spacer(), 
+
+        ],
+    );
+  }
+}
+
+
+
+
+
+
+
+return AdaptativeScreen(
+        backgroundImage:'home/homeBg.jpg',
+        titleImage: 'configuracion/bluetoothScanner.png',
+        height:height,
+        children: 
+          [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: 
+                    BoxDecoration(
+                      color: Color.fromARGB(232, 255, 248, 248)
+                    ),
+                  foregroundDecoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.redAccent, 
+                      width: 4.0, 
+                    ),
+                  ),
+                  children:[
+                    ListTile(
+              title: Text("Conectado a: ${_connectedDevice?.name ?? 'Ninguno'}"),
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () async {
+                  var list = await BluetoothScanner.getBondedDevices();
+                  setState(() => _devices = list);
+                },
+              ),
+            ),
+
+            Expanded(
+              child: _isConnecting 
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _devices.length,
+                    itemBuilder: (context, index) {
+                      final dev = _devices[index];
+                      return ListTile(
+                        title: Text(dev.name ?? "Desconocido"),
+                        subtitle: Text(dev.address),
+                        onTap: () => _handleConnect(dev),
+                      );
+                    },
+                  ),
+            ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+          
+    ); 
