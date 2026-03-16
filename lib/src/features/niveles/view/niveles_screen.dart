@@ -1,64 +1,102 @@
 import 'package:flutter/material.dart';
-import 'package:karelito/src/features/niveles/view/niveles_nivel.dart';
-import '../../../shared/classes/classes.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../shared/providers/providers.dart';
 import '../../../shared/views/views.dart';
-
-
+import '../../../shared/controllers/controllers.dart';
+import '../view/niveles_nivel.dart';
 class NivelesScreen extends StatelessWidget {
   const NivelesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final NivelesProvider nivelesProvider= NivelesProvider();
-    final List<Nivel> niveles = nivelesProvider.niveles;
+    final niveles = NivelesProvider().niveles;
+    final bt = context.watch<BluetoothManager>();
 
     return Scaffold(
-      body: LayoutBuilder(
-      builder: (context, constraints) {
-        final height = constraints.maxHeight;
-        return Container(
-          width: constraints.maxWidth,
-          height: constraints.maxHeight,
-          decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('home/homeBg.jpg'),
-            fit: BoxFit.cover,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/home/homeBg.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 60,
-            vertical: 12,
+
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new,
+                                color: Colors.white),
+                            onPressed: () => context.go('/'),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black38,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  bt.isConnected
+                                      ? Icons.bluetooth_connected
+                                      : Icons.bluetooth_disabled,
+                                  color: bt.isConnected
+                                      ? Colors.greenAccent
+                                      : Colors.redAccent,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  bt.isConnected ? 'Conectado' : 'Sin conexión',
+                                  style: TextStyle(
+                                    color: bt.isConnected
+                                        ? Colors.greenAccent
+                                        : Colors.redAccent,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: constraints.maxHeight * 0.02),
+                    const TitleCard(text: 'NIVELES'),
+                    SizedBox(height: constraints.maxHeight * 0.03),
+
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        child: VistaNiveles(
+                          niveles: niveles,
+                          constraints: constraints,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        child: SingleChildScrollView(
-  child: Column(
-    
-    children: [
-      SizedBox(height: height * 0.05),
-
-      const TitleCard(text: 'NIVELES'),
-      SizedBox(height: height * 0.04),
-      LayoutBuilder(
-        builder: (context, constraints) {
-          
-          return Column(
-            crossAxisAlignment:CrossAxisAlignment.center,
-            children: [
-              
-            VistaNiveles(niveles: niveles, constraints: constraints),
-      const SizedBox(height: 40), 
-            ],
-        );})
-    ],
-  ),
-),
-      )
-
-    );
-    },
+        ],
       ),
     );
   }
-
 }

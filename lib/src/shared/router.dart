@@ -1,43 +1,10 @@
-// Copyright 2022 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../features/features.dart';
+import '../shared/providers/providers.dart';
 
-import '../features/artists/artists.dart';
-import '../features/principal/principal.dart';
-import '../features/playlists/playlists.dart';
-import '../features/playlists/view/view.dart';
-import 'providers/artists.dart';
-import 'providers/playlists.dart';
-import 'views/views.dart';
-
-const _pageKey = ValueKey('_pageKey');
-const _scaffoldKey = ValueKey('_scaffoldKey');
-
-
-
-const List<NavigationDestination> destinations = [
-  NavigationDestination(
-    label: 'Home',
-    icon: Icon(Icons.arrow_right_rounded),
-    route: '/',
-  ),
-  NavigationDestination(
-    label: 'Settings',
-    icon: Icon(Icons.arrow_right_rounded),
-    route: '/settings',
-  ),
-  NavigationDestination(
-    label: 'LevelView',
-    icon: Icon(Icons.arrow_right_rounded),
-    route: '/levelView',
-  ),
-];
-
-class NavigationDestination {
-  const NavigationDestination({
+class AppRouteDestination {
+  const AppRouteDestination({
     required this.route,
     required this.label,
     required this.icon,
@@ -50,52 +17,54 @@ class NavigationDestination {
   final Widget? child;
 }
 
+const List<AppRouteDestination> destinations = [
+  AppRouteDestination(
+    label: 'Home',
+    icon: Icon(Icons.arrow_right_rounded),
+    route: '/',
+  ),
+  AppRouteDestination(
+    label: 'Settings',
+    icon: Icon(Icons.arrow_right_rounded),
+    route: '/settings',
+  ),
+  AppRouteDestination(
+    label: 'LevelView',
+    icon: Icon(Icons.arrow_right_rounded),
+    route: '/levelView',
+  ),
+];
+
 final appRouter = GoRouter(
+  initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
-      pageBuilder: (context, state) => const MaterialPage<void>(
-        key: _pageKey,
-        child: RootLayout(
-          key: _scaffoldKey,
-          currentIndex: 0,
-          child: HomeScreen(),
-        ),
-      ),
+      builder: (context, state) => const HomeScreen(),
     ),
     GoRoute(
       path: '/settings',
-      pageBuilder: (context, state) => const MaterialPage<void>(
-        key: _pageKey,
-        child: RootLayout(
-          key: _scaffoldKey,
-          currentIndex: 1,
-          child: SettingsScreen(),
-        ),
-      ),
+      builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
       path: '/levelView',
-      pageBuilder: (context, state) => const MaterialPage<void>(
-        key: _pageKey,
-        child: RootLayout(
-          key: _scaffoldKey,
-          currentIndex: 2,
-          child: levelViewScreen(),
-        ),
-      ),
+      builder: (context, state) => const NivelesScreen(),
     ),
-    for (final route in destinations.skip(3))
-      GoRoute(
-        path: route.route,
-        pageBuilder: (context, state) => MaterialPage<void>(
-          key: _pageKey,
-          child: RootLayout(
-            key: _scaffoldKey,
-            currentIndex: destinations.indexOf(route),
-            child: const SizedBox(),
-          ),
-        ),
-      ),
+    GoRoute(
+      path: '/settings/bluetooth',
+      builder: (context, state) => const ConnectionScreen(),
+    ),
+    GoRoute(
+      path:'/levelView/tutorial',
+      builder:(context, state) => const LevelScreen(level: Levels.tutorial),
+    ),
+    GoRoute(
+      path:'/levelView/nivel_1',
+      builder:(context, state) => const LevelScreen(level: Levels.level1),
+    ),
+    GoRoute(
+      path:'/levelView/nivel_2',
+      builder:(context, state) => const LevelScreen(level: Levels.level2),
+    ),
   ],
 );

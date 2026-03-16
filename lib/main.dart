@@ -1,24 +1,27 @@
-// Copyright 2022 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
-import 'package:universal_platform/universal_platform.dart';
+import 'package:provider/provider.dart'; 
+import 'src/shared/router.dart';
+import 'src/shared/controllers/controllers.dart';
 
-import 'src/shared/app.dart';
-
-  Future setDesktopWindow() async {{}
-  await DesktopWindow.setMinWindowSize(const Size(400, 400));
-  await DesktopWindow.setWindowSize(const Size(1300, 900));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
+  runApp(
+    ChangeNotifierProvider.value(
+      value: BluetoothManager(),  
+      child: const MyApp(),
+    ),
+  );
 }
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-  if (UniversalPlatform.isDesktop) {
-    setDesktopWindow();
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: appRouter,
+      title: 'Karelito',
+      theme: ThemeData(useMaterial3: true),
+    );
   }
-
-  runApp(const MyApp());
 }

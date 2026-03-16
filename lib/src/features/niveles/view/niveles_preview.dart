@@ -31,6 +31,8 @@ class MyAppState extends ChangeNotifier {
 }
 
 class NivelesPreview extends StatefulWidget {
+  const NivelesPreview({super.key});
+
   @override
   State<NivelesPreview> createState() =>_NivelesPreviewState();
 }
