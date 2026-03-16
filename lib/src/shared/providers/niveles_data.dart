@@ -4,8 +4,7 @@ class Levels {
   static const LevelData tutorial = LevelData(
     title: 'Tutorial',
     id: 'tutorial',
-    objectiveDescription:
-        'Recoge el zumbador mirando hacia el norte.',
+    objectiveDescription: 'Recoge el zumbador mirando hacia el norte.',
     startRow: 5,
     startCol: 1,
     startDirection: 2, // Norte
@@ -28,15 +27,15 @@ class Levels {
       ['i','i','i','i','i','i','i','i','i','i','i'],
     ],
   );
+
   static const LevelData level1 = LevelData(
     title: 'Nivel 1',
     id: 'nivel_1',
-    objectiveDescription:
-        'Recoge el zumbador mirando hacia el Este.',
+    objectiveDescription: 'Recoge el zumbador mirando hacia el Este.',
     startRow: 5,
     startCol: 1,
     startDirection: 2, // Norte
-    winDirection: 2,   // Este
+    winDirection: 1,   // Este  ← corregido (1 = Este, no 2)
     threeStarMaxBlocks: 5,
     twoStarMaxBlocks: 8,
     imagePath1: 'assets/imagenesNiveles/nivel1_1.png',
@@ -47,7 +46,7 @@ class Levels {
       ['i','0','0','0','0','0','i'],
       ['i','1','0','1','0','1','i'],
       ['i','0','i','i','i','i','i'],
-      ['i','1','i','1','0','1','i'],
+      ['i','1','i','2','0','1','i'],
       ['i','i','i','i','i','i','i'],
     ],
     availableBlocks: [
@@ -57,8 +56,9 @@ class Levels {
       ToolboxBlockConfig(name: 'Repetir',   isLoop: true),
     ],
   );
+
   static const LevelData level2 = LevelData(
-        title: 'Nivel 2',
+    title: 'Nivel 2',
     id: 'nivel_2',
     objectiveDescription:
         'Guía al Karelito hasta la meta usando bloques de código.',
@@ -83,7 +83,7 @@ class Levels {
       ['i','1','0','1','0','1','0','1','0','1','i'],
       ['i','i','i','i','i','i','i','i','i','i','i'],
     ],
-
   );
+
   static List<LevelData> get all => [tutorial, level1, level2];
 }

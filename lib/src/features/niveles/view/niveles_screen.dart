@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/providers/providers.dart';
+import '../../../shared/providers/progress_manager.dart';
 import '../../../shared/views/views.dart';
 import '../../../shared/controllers/controllers.dart';
 import '../view/niveles_nivel.dart';
+
 class NivelesScreen extends StatelessWidget {
   const NivelesScreen({super.key});
 
@@ -12,6 +14,16 @@ class NivelesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final niveles = NivelesProvider().niveles;
     final bt = context.watch<BluetoothManager>();
+    // Escucha cambios de progreso para redibujar estrellas/candados
+    final progress = context.watch<ProgressManager>();
+
+    // Mezcla los datos estáticos con el progreso guardado
+    final nivelesConProgreso = niveles.map((n) {
+      return n.copyWith(
+        stars: progress.getStars(n.id),
+        locked: !progress.isUnlocked(n.id),
+      );
+    }).toList();
 
     return Scaffold(
       body: Stack(
@@ -22,7 +34,6 @@ class NivelesScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -60,7 +71,9 @@ class NivelesScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  bt.isConnected ? 'Conectado' : 'Sin conexión',
+                                  bt.isConnected
+                                      ? 'Conectado'
+                                      : 'Sin conexión',
                                   style: TextStyle(
                                     color: bt.isConnected
                                         ? Colors.greenAccent
@@ -76,16 +89,15 @@ class NivelesScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-
                     SizedBox(height: constraints.maxHeight * 0.02),
                     const TitleCard(text: 'NIVELES'),
                     SizedBox(height: constraints.maxHeight * 0.03),
-
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 8),
                         child: VistaNiveles(
-                          niveles: niveles,
+                          niveles: nivelesConProgreso,
                           constraints: constraints,
                         ),
                       ),
