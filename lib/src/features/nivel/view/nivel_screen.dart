@@ -158,7 +158,6 @@ class _LevelScreenState extends State<LevelScreen>
   List<Map<String, dynamic>> get _defaultToolbox => [
         {'name': 'Avanzar', 'code': 'A'},
         {'name': 'Giro Izq.', 'code': 'I'},
-        {'name': 'Giro Der.', 'code': 'D'},
         {'name': 'Sensor', 'code': 'S'},
         {'name': 'Repetir', 'isLoop': true},
         {
@@ -373,19 +372,19 @@ class _LevelScreenState extends State<LevelScreen>
 
         if (bt.isConnected) {
           await bt.send('A');
-          await Future.delayed(const Duration(milliseconds: 150));
+          await Future.delayed(const Duration(milliseconds: 700));
         }
       } else if (inst == 'I') {
         direccion = (direccion + 3) % 4;
         if (bt.isConnected) {
           await bt.send('I');
-          await Future.delayed(const Duration(milliseconds: 150));
+          await Future.delayed(const Duration(milliseconds: 500));
         }
       } else if (inst == 'D') {
         direccion = (direccion + 1) % 4;
         if (bt.isConnected) {
           await bt.send('D');
-          await Future.delayed(const Duration(milliseconds: 150));
+          await Future.delayed(const Duration(milliseconds: 500));
         }
       } else if (inst == 'S') {
         if (mapa[kx][ky] == 2) {
@@ -463,19 +462,16 @@ class _LevelScreenState extends State<LevelScreen>
     );
 
     if (ok) {
-      // ── GUARDAR PROGRESO ──────────────────────────────────
       final int stars = widget.level.calculateStars(totalBlocks);
       await context
           .read<ProgressManager>()
           .completeLevel(widget.level.id, stars);
-      // ─────────────────────────────────────────────────────
 
       await Future.delayed(const Duration(milliseconds: 400));
       if (mounted) showLevelCompletedDialog(totalBlocks);
     }
   }
 
-  // ── Diálogo de nivel completado ──────────────────────────
   void showLevelCompletedDialog(int totalBlocks) {
     final int stars = widget.level.calculateStars(totalBlocks);
     showDialog(
@@ -554,7 +550,6 @@ class _LevelScreenState extends State<LevelScreen>
                   ),
                 ),
               ),
-              // ───────────────────────────────────────────
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.symmetric(

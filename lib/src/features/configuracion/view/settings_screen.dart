@@ -93,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _rowButtons(
                       ['Calib.\nIzquierda', 'Calib.\n20cm', 'Calib.\nDerecha'],
                       [Colors.grey, Colors.grey, Colors.grey],
-                      ['H', 'C', 'G'],
+                      ['G', 'C', 'H'],
                       buttonHeight,
                       bt,
                     ),
@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _rowButtons(
                       ['Desvío Iz', 'Desvío Dr'],
                       [Colors.teal, Colors.teal],
-                      ['J', 'K'],
+                      ['+', '-'],
                       buttonHeight,
                       bt,
                     ),
@@ -113,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _rowButtons(
                       ['+Giro', '-Giro'],
                       [Colors.purple, Colors.purple],
-                      ['+', '-'],
+                      ['J', 'K'],
                       buttonHeight,
                       bt,
                     ),
@@ -121,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _rowButtons(
                       ['+CM', '-CM'],
                       [Colors.brown, Colors.brown],
-                      ['J', 'K'],
+                      ['U', 'N'],
                       buttonHeight,
                       bt,
                     ),
@@ -129,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _rowButtons(
                       ['+Freno', '-Freno'],
                       [Colors.red, Colors.red],
-                      ['U', 'N'],
+                      ['F', 'f'],
                       buttonHeight,
                       bt,
                     ),
@@ -141,8 +141,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
-
-        // ── Botón volver ──
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           left: 8,

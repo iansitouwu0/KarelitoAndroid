@@ -14,10 +14,7 @@ class NivelesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final niveles = NivelesProvider().niveles;
     final bt = context.watch<BluetoothManager>();
-    // Escucha cambios de progreso para redibujar estrellas/candados
     final progress = context.watch<ProgressManager>();
-
-    // Mezcla los datos estáticos con el progreso guardado
     final nivelesConProgreso = niveles.map((n) {
       return n.copyWith(
         stars: progress.getStars(n.id),
