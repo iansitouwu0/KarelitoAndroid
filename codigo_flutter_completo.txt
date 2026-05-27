@@ -1,0 +1,5312 @@
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\.dart_tool\dartpad\web_plugin_registrant.dart =====
+// Flutter web plugin registrant file.
+//
+// Generated file. Do not edit.
+//
+
+// @dart = 2.13
+// ignore_for_file: type=lint
+
+import 'package:shared_preferences_web/shared_preferences_web.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+
+void registerPlugins([final Registrar? pluginRegistrar]) {
+  final Registrar registrar = pluginRegistrar ?? webPluginRegistrar;
+  SharedPreferencesPlugin.registerWith(registrar);
+  registrar.registerMessageHandler();
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\configuracion\view\connection_screen.dart =====
+  import 'package:flutter/material.dart';
+  import 'package:flutter_bluetooth_classic_serial/flutter_bluetooth_classic.dart';
+  import 'package:go_router/go_router.dart';
+  import '../../../shared/controllers/controllers.dart';
+
+  class ConnectionScreen extends StatefulWidget {
+    const ConnectionScreen({super.key});
+
+    @override
+    State<ConnectionScreen> createState() => _ConnectionScreenState();
+  }
+
+  class _ConnectionScreenState extends State<ConnectionScreen> {
+    final FlutterBluetoothClassic _bluetooth = FlutterBluetoothClassic();
+
+    bool _bluetoothState = false;
+    List<BluetoothDevice> _devices = [];
+    bool _isConnecting = false;
+    String? _connectingAddress;
+    bool _isLoading = true;
+
+    @override
+    void initState() {
+      super.initState();
+      _checkPermissions();
+    }
+
+    Future<void> _checkPermissions() async {
+      setState(() => _isLoading = true);
+      bool isEnabled = await _bluetooth.isBluetoothEnabled();
+      List<BluetoothDevice> pairedDevices = await _bluetooth.getPairedDevices();
+      setState(() {
+        _bluetoothState = isEnabled;
+        _devices = pairedDevices;
+        _isLoading = false;
+      });
+    }
+
+    Future<void> _connectToDevice(BluetoothDevice device) async {
+      setState(() {
+        _isConnecting = true;
+        _connectingAddress = device.address;
+      });
+
+      bool success = await BluetoothManager().connect(device.address);
+
+      setState(() {
+        _isConnecting = false;
+        _connectingAddress = null;
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                success ? Icons.check_circle : Icons.error,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Text(success
+                  ? 'Conectado a ${device.name ?? device.address}'
+                  : 'Error al conectar'),
+            ],
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      final theme = Theme.of(context);
+      final isConnected = BluetoothManager().isConnected;
+
+      return Scaffold(
+        backgroundColor: const Color(0xFF1A1A2E),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF16213E),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            onPressed: () => context.go('/settings'),
+          ),
+          title: const Text(
+            'Conexión Bluetooth',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              tooltip: 'Actualizar',
+              onPressed: _checkPermissions,
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.blueAccent),
+              )
+            : Column(
+                children: [
+                  // ── Estado Bluetooth + Conexión ──
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF16213E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: _bluetoothState
+                                    ? Colors.blue.withOpacity(0.2)
+                                    : Colors.grey.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.bluetooth,
+                                color: _bluetoothState
+                                    ? Colors.blueAccent
+                                    : Colors.grey,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Bluetooth',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    _bluetoothState ? 'Activado' : 'Desactivado',
+                                    style: TextStyle(
+                                      color: _bluetoothState
+                                          ? Colors.blueAccent
+                                          : Colors.grey,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _bluetoothState,
+                              activeThumbColor: Colors.blueAccent,
+                              onChanged: (_) => _checkPermissions(),
+                            ),
+                          ],
+                        ),
+                        const Divider(color: Colors.white12, height: 24),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: isConnected
+                                    ? Colors.green.withOpacity(0.2)
+                                    : Colors.red.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                isConnected ? Icons.link : Icons.link_off,
+                                color:
+                                    isConnected ? Colors.greenAccent : Colors.redAccent,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Estado de conexión',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  isConnected ? 'Dispositivo conectado' : 'Sin conexión',
+                                  style: TextStyle(
+                                    color: isConnected
+                                        ? Colors.greenAccent
+                                        : Colors.redAccent,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Lista de dispositivos ──
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Dispositivos vinculados',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${_devices.length}',
+                            style: const TextStyle(
+                                color: Colors.blueAccent, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Expanded(
+                    child: _devices.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.bluetooth_searching,
+                                    size: 60, color: Colors.white24),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'No hay dispositivos vinculados',
+                                  style: TextStyle(color: Colors.white38),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _devices.length,
+                            itemBuilder: (context, index) {
+                              final device = _devices[index];
+                              final isThisConnecting =
+                                  _connectingAddress == device.address;
+
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF16213E),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: Colors.white12),
+                                ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blueAccent.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.bluetooth_audio,
+                                      color: Colors.blueAccent,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    device.name ?? 'Dispositivo desconocido',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    device.address,
+                                    style: const TextStyle(
+                                        color: Colors.white38, fontSize: 12),
+                                  ),
+                                  trailing: SizedBox(
+                                    width: 110,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isThisConnecting
+                                            ? Colors.grey
+                                            : Colors.blueAccent,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                      ),
+                                      onPressed: _isConnecting
+                                          ? null
+                                          : () => _connectToDevice(device),
+                                      child: isThisConnecting
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text('Conectar'),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+      );
+    }
+  }
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\configuracion\view\settings_preview.dart =====
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\configuracion\view\settings_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/views/views.dart';
+import '../../../shared/controllers/controllers.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+    final buttonHeight = height * 0.065;
+    final spacing = height * 0.015;
+    final bt = context.watch<BluetoothManager>(); 
+
+    return Stack(
+      children: [
+        AdaptativeScreen(
+          backgroundImage: 'assets/home/homeBg.jpg',
+          titleImage: 'assets/configuracion/titleImage.png',
+          height: height,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.04,
+                  vertical: height * 0.01,
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: buttonHeight * 1.1,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.go('/settings/bluetooth'),
+                        icon: Icon(
+                          bt.isConnected
+                              ? Icons.bluetooth_connected
+                              : Icons.bluetooth_disabled,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          bt.isConnected
+                              ? 'Bluetooth · Conectado'
+                              : 'Bluetooth · Desconectado',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              bt.isConnected ? Colors.green : Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: spacing * 1.5),
+                    _sectionLabel('Controles'),
+                    SizedBox(height: spacing),
+
+                    _rowButtons(
+                      ['LEFT', 'RUN', 'RIGHT'],
+                      [Colors.blue, Colors.green, Colors.blue],
+                      ['I', 'A', 'D'],
+                      buttonHeight,
+                      bt,
+                    ),
+                    SizedBox(height: spacing),
+                    _rowButtons(
+                      ['BUZZER'],
+                      [Colors.orange],
+                      ['S'],
+                      buttonHeight,
+                      bt,
+                    ),
+
+                    SizedBox(height: spacing * 1.5),
+                    _sectionLabel('Calibración'),
+                    SizedBox(height: spacing),
+
+                    _rowButtons(
+                      ['Calib.\nIzquierda', 'Calib.\n20cm', 'Calib.\nDerecha'],
+                      [Colors.grey, Colors.grey, Colors.grey],
+                      ['H', 'C', 'G'],
+                      buttonHeight,
+                      bt,
+                    ),
+                    SizedBox(height: spacing),
+                    _rowButtons(
+                      ['Desvío Iz', 'Desvío Dr'],
+                      [Colors.teal, Colors.teal],
+                      ['J', 'K'],
+                      buttonHeight,
+                      bt,
+                    ),
+
+                    SizedBox(height: spacing * 1.5),
+                    _sectionLabel('Ajustes'),
+                    SizedBox(height: spacing),
+
+                    _rowButtons(
+                      ['+Giro', '-Giro'],
+                      [Colors.purple, Colors.purple],
+                      ['+', '-'],
+                      buttonHeight,
+                      bt,
+                    ),
+                    SizedBox(height: spacing),
+                    _rowButtons(
+                      ['+CM', '-CM'],
+                      [Colors.brown, Colors.brown],
+                      ['J', 'K'],
+                      buttonHeight,
+                      bt,
+                    ),
+                    SizedBox(height: spacing),
+                    _rowButtons(
+                      ['+Freno', '-Freno'],
+                      [Colors.red, Colors.red],
+                      ['U', 'N'],
+                      buttonHeight,
+                      bt,
+                    ),
+
+                    SizedBox(height: spacing * 2),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // ── Botón volver ──
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 8,
+          left: 8,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionLabel(String label) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label.toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _rowButtons(
+    List<String> texts,
+    List<Color> colors,
+    List<String> data,
+    double height,
+    BluetoothManager bt, 
+  ) {
+    return Row(
+      children: List.generate(texts.length, (index) {
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: SizedBox(
+              height: height,
+              child: ElevatedButton(
+                onPressed: bt.isConnected
+                    ? () => bt.send(data[index])
+                    : () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('¡Conecta el Bluetooth primero!'),
+                            backgroundColor: Colors.redAccent,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colors[index],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: Text(
+                  texts[index],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\configuracion\view\view.dart =====
+export './settings_screen.dart';
+export './connection_screen.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\configuracion\settings.dart =====
+export 'view/view.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\nivel\view\nivel_preview.dart =====
+import 'package:flutter/material.dart';
+import 'nivel_screen.dart';
+import '../../../shared/providers/providers.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LevelScreen(level: Levels.tutorial),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\nivel\view\nivel_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/classes/classes.dart';
+import '../../../shared/controllers/controllers.dart';
+import '../../../shared/providers/progress_manager.dart';
+
+class AppColors {
+  static const Color bg = Color(0xFF0F1923);
+  static const Color surface = Color(0xFF1A2535);
+  static const Color surfaceLight = Color(0xFF243044);
+  static const Color accent = Color(0xFF00D4FF);
+  static const Color accentDim = Color(0xFF0099BB);
+  static const Color blockAdvance = Color(0xFF2ECC71);
+  static const Color blockLeft = Color(0xFF3498DB);
+  static const Color blockRight = Color(0xFFE67E22);
+  static const Color blockSensor = Color(0xFF9B59B6);
+  static const Color blockLoop = Color(0xFFE74C3C);
+  static const Color blockFunction = Color(0xFF1ABC9C);
+  static const Color toolboxBg = Color(0xFF141F2E);
+  static const Color textPrimary = Color(0xFFECF0F1);
+  static const Color textSecondary = Color(0xFF8899AA);
+  static const Color success = Color(0xFF2ECC71);
+  static const Color error = Color(0xFFE74C3C);
+  static const Color warning = Color(0xFFF39C12);
+}
+
+class BlockWidget extends StatelessWidget {
+  final String name;
+  final Color color;
+  final IconData? icon;
+  final bool isDragging;
+  final VoidCallback? onTap;
+  final bool compact;
+
+  const BlockWidget({
+    super.key,
+    required this.name,
+    required this.color,
+    this.icon,
+    this.isDragging = false,
+    this.onTap,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor =
+        isDragging ? Color.lerp(color, Colors.black, 0.25)! : color;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin:
+            EdgeInsets.symmetric(vertical: compact ? 2 : 3, horizontal: 2),
+        padding: EdgeInsets.symmetric(
+            vertical: compact ? 8 : 10, horizontal: compact ? 8 : 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isDragging
+              ? [
+                  BoxShadow(
+                      color: color.withOpacity(0.5),
+                      blurRadius: 12,
+                      spreadRadius: 2)
+                ]
+              : [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2)),
+                  BoxShadow(
+                      color: color.withOpacity(0.15), blurRadius: 8),
+                ],
+          border: Border(
+            top: BorderSide(color: color.withOpacity(0.6), width: 1),
+            left: BorderSide(color: color.withOpacity(0.6), width: 1),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: compact ? 14 : 16,
+                  color: Colors.white.withOpacity(0.95)),
+              SizedBox(width: compact ? 4 : 6),
+            ],
+            Flexible(
+              child: Text(
+                name,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: compact ? 11 : 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BlockCounterBadge extends StatelessWidget {
+  final int count;
+  const BlockCounterBadge({super.key, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color =
+        count >= 9 ? AppColors.warning : AppColors.accent;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.4), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.grid_view_rounded, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text('$count bloques',
+              style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.4)),
+        ],
+      ),
+    );
+  }
+}
+
+class LevelScreen extends StatefulWidget {
+  final LevelData level;
+  const LevelScreen({super.key, required this.level});
+
+  @override
+  State<LevelScreen> createState() => _LevelScreenState();
+}
+
+class _LevelScreenState extends State<LevelScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _executeController;
+  late Animation<double> _executeScale;
+  bool _isExecuting = false;
+  Color? _feedbackColor;
+  late List<Map<String, dynamic>> toolbox;
+
+  List<Map<String, dynamic>> get _defaultToolbox => [
+        {'name': 'Avanzar', 'code': 'A'},
+        {'name': 'Giro Izq.', 'code': 'I'},
+        {'name': 'Giro Der.', 'code': 'D'},
+        {'name': 'Sensor', 'code': 'S'},
+        {'name': 'Repetir', 'isLoop': true},
+        {
+          'name': 'Función',
+          'isFunction': true,
+          'configured': false,
+          'children': <Map<String, dynamic>>[]
+        },
+      ];
+
+  @override
+  void initState() {
+    super.initState();
+    _executeController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
+    _executeScale = Tween<double>(begin: 1.0, end: 0.94).animate(
+      CurvedAnimation(
+          parent: _executeController, curve: Curves.easeInOut),
+    );
+    if (widget.level.availableBlocks != null) {
+      toolbox = widget.level.availableBlocks!.map((b) {
+        return <String, dynamic>{
+          'name': b.name,
+          'code': b.code,
+          'isLoop': b.isLoop,
+          'isFunction': b.isFunction,
+          if (b.isFunction) 'configured': false,
+          if (b.isFunction || b.isLoop)
+            'children': <Map<String, dynamic>>[],
+        };
+      }).toList();
+    } else {
+      toolbox = _defaultToolbox;
+    }
+  }
+
+  @override
+  void dispose() {
+    _executeController.dispose();
+    super.dispose();
+  }
+
+  final List<Map<String, dynamic>> workspaceBlocks = [];
+
+  IconData blockIcon(Map<String, dynamic> block) {
+    if (block['isLoop'] == true) return Icons.repeat_rounded;
+    if (block['isFunction'] == true) return Icons.code_rounded;
+    switch (block['name']) {
+      case 'Avanzar':
+        return Icons.north_rounded;
+      case 'Giro Izq.':
+        return Icons.rotate_left_rounded;
+      case 'Giro Der.':
+        return Icons.rotate_right_rounded;
+      case 'Sensor':
+        return Icons.sensors_rounded;
+      default:
+        return Icons.extension_rounded;
+    }
+  }
+
+  Color toolboxColor(Map<String, dynamic> block) {
+    if (block['isLoop'] == true) return AppColors.blockLoop;
+    if (block['isFunction'] == true) return AppColors.blockFunction;
+    return AppColors.toolboxBg;
+  }
+
+  Color workspaceColor(Map<String, dynamic> block) {
+    switch (block['name']) {
+      case 'Avanzar':
+        return AppColors.blockAdvance;
+      case 'Giro Izq.':
+        return AppColors.blockLeft;
+      case 'Giro Der.':
+        return AppColors.blockRight;
+      case 'Sensor':
+        return AppColors.blockSensor;
+      default:
+        return AppColors.surfaceLight;
+    }
+  }
+
+  int countBlocks(List<Map<String, dynamic>> blocks,
+      {bool isWorkspace = false}) {
+    int count = 0;
+    for (final block in blocks) {
+      final bool isFunction = block['isFunction'] == true;
+      final bool isLoop = block['isLoop'] == true;
+      final List<Map<String, dynamic>>? children =
+          block['children'] as List<Map<String, dynamic>>?;
+      if (isFunction) {
+        count += 1;
+        continue;
+      }
+      if (isLoop) {
+        count += 1;
+        if (children != null) count += countBlocks(children);
+        continue;
+      }
+      count += 1;
+    }
+    return count;
+  }
+
+  int countConfiguredFunctions() {
+    final Set<String> usedFunctions = {};
+    void findFunctions(List<Map<String, dynamic>> blocks) {
+      for (final block in blocks) {
+        if (block['isFunction'] == true)
+          usedFunctions.add(block['name']);
+        if (block['children'] != null)
+          findFunctions(block['children'] as List<Map<String, dynamic>>);
+      }
+    }
+
+    findFunctions(workspaceBlocks);
+    int count = 0;
+    for (final block in toolbox) {
+      if (block['isFunction'] == true &&
+          block['configured'] == true &&
+          usedFunctions.contains(block['name'])) {
+        final children =
+            block['children'] as List<Map<String, dynamic>>?;
+        if (children != null) count += countBlocks(children);
+      }
+    }
+    return count;
+  }
+
+  int get totalBlockCount =>
+      countBlocks(workspaceBlocks, isWorkspace: true) +
+      countConfiguredFunctions();
+
+  String generateCode(List<Map<String, dynamic>> blocks) {
+    String code = '';
+    for (var block in blocks) {
+      if (block['isLoop'] == true && block['children'] != null) {
+        int times = block['times'] ?? 1;
+        String childCode =
+            generateCode(block['children'] as List<Map<String, dynamic>>);
+        for (int i = 0; i < times; i++) code += childCode;
+      } else if (block['isFunction'] == true &&
+          block['children'] != null) {
+        code +=
+            generateCode(block['children'] as List<Map<String, dynamic>>);
+      } else {
+        code += block['code'] ?? '';
+      }
+    }
+    return code;
+  }
+
+  Future<void> ejecutar() async {
+    if (_isExecuting) return;
+    setState(() => _isExecuting = true);
+    _executeController
+        .forward()
+        .then((_) => _executeController.reverse());
+    await Future.delayed(const Duration(milliseconds: 180));
+
+    final code = generateCode(workspaceBlocks);
+    final totalBlocks = totalBlockCount;
+    initMapa();
+
+    final bt = context.read<BluetoothManager>();
+    bool colision = false;
+
+    for (int paso = 0; paso < code.length; paso++) {
+      if (!mounted) return;
+      final inst = code[paso];
+      if (inst == ' ') continue;
+
+      if (inst == 'A') {
+        final int nx1 = kx + dx[direccion];
+        final int ny1 = ky + dy[direccion];
+        final int celda1 = mapa[nx1][ny1];
+
+        int nx, ny;
+
+        if (celda1 == 0) {
+          final int nx2 = kx + dx[direccion] * 2;
+          final int ny2 = ky + dy[direccion] * 2;
+          final int celda2 = mapa[nx2][ny2];
+
+          if (celda2 == 1 || celda2 == 2) {
+            nx = nx2;
+            ny = ny2;
+          } else {
+            colision = true;
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('💥 Karel chocó en paso ${paso + 1}'),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ));
+            }
+            break;
+          }
+        } else {
+          colision = true;
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('💥 Karel chocó en paso ${paso + 1}'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ));
+          }
+          break;
+        }
+        kx = nx;
+        ky = ny;
+
+        if (bt.isConnected) {
+          await bt.send('A');
+          await Future.delayed(const Duration(milliseconds: 150));
+        }
+      } else if (inst == 'I') {
+        direccion = (direccion + 3) % 4;
+        if (bt.isConnected) {
+          await bt.send('I');
+          await Future.delayed(const Duration(milliseconds: 150));
+        }
+      } else if (inst == 'D') {
+        direccion = (direccion + 1) % 4;
+        if (bt.isConnected) {
+          await bt.send('D');
+          await Future.delayed(const Duration(milliseconds: 150));
+        }
+      } else if (inst == 'S') {
+        if (mapa[kx][ky] == 2) {
+          mapa[kx][ky] = 1;
+          zRecogidos++;
+          direccionAlRecoger = direccion;
+          if (bt.isConnected) {
+            await bt.send('S');
+            await Future.delayed(const Duration(milliseconds: 150));
+          }
+        }
+      }
+    }
+
+    if (!mounted) return;
+
+    if (!bt.isConnected && !colision) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('¡Conecta el Bluetooth para ejecutar en físico!'),
+          backgroundColor: Colors.orangeAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+
+    final bool ok = !colision &&
+        zRecogidos == zTotales &&
+        direccionAlRecoger == widget.level.winDirection;
+
+    setState(() {
+      _feedbackColor = ok ? AppColors.success : AppColors.error;
+      _isExecuting = false;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _feedbackColor = null);
+    });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: ok
+            ? AppColors.success.withOpacity(0.95)
+            : AppColors.surface,
+        content: Row(
+          children: [
+            Icon(
+                ok
+                    ? Icons.check_circle_rounded
+                    : Icons.info_rounded,
+                color: ok ? Colors.white : AppColors.accent,
+                size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                ok
+                    ? '¡Completado! Bloques: $totalBlocks'
+                    : colision
+                        ? 'Karel chocó · Bloques: $totalBlocks'
+                        : 'Código: $code  ·  Bloques: $totalBlocks',
+                style:
+                    const TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+    if (ok) {
+      // ── GUARDAR PROGRESO ──────────────────────────────────
+      final int stars = widget.level.calculateStars(totalBlocks);
+      await context
+          .read<ProgressManager>()
+          .completeLevel(widget.level.id, stars);
+      // ─────────────────────────────────────────────────────
+
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (mounted) showLevelCompletedDialog(totalBlocks);
+    }
+  }
+
+  // ── Diálogo de nivel completado ──────────────────────────
+  void showLevelCompletedDialog(int totalBlocks) {
+    final int stars = widget.level.calculateStars(totalBlocks);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+                color: AppColors.accent.withOpacity(0.25), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                  color: AppColors.accent.withOpacity(0.08),
+                  blurRadius: 40,
+                  spreadRadius: 5)
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: AppColors.warning.withOpacity(0.35),
+                      width: 2),
+                ),
+                child: const Icon(Icons.emoji_events_rounded,
+                    size: 34, color: AppColors.warning),
+              ),
+              const SizedBox(height: 14),
+              const Text('¡Nivel Completado!',
+                  style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              const Text('Excelente trabajo 👏',
+                  style: TextStyle(
+                      color: AppColors.textSecondary, fontSize: 14)),
+              const SizedBox(height: 18),
+              // ── Estrellas animadas ──────────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  3,
+                  (i) => TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration:
+                        Duration(milliseconds: 400 + i * 150),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) => Transform.scale(
+                      scale: value,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 4),
+                        child: Icon(
+                          i < stars
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          color: i < stars
+                              ? AppColors.warning
+                              : AppColors.textSecondary,
+                          size: 42,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // ───────────────────────────────────────────
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.grid_view_rounded,
+                        size: 14, color: AppColors.accent),
+                    const SizedBox(width: 6),
+                    Text('$totalBlocks bloques usados',
+                        style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.go('/levelView');
+                      },
+                      style: TextButton.styleFrom(
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                              color: AppColors.textSecondary
+                                  .withOpacity(0.25)),
+                        ),
+                      ),
+                      child: const Text('Ver niveles',
+                          style: TextStyle(
+                              color: AppColors.textSecondary)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: AppColors.bg,
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Continuar',
+                          style:
+                              TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void addBlock(Map<String, dynamic> block,
+      List<Map<String, dynamic>> targetList) {
+    setState(() {
+      targetList.add({
+        'name': block['name'],
+        'code': block['code'],
+        'times': block['isLoop'] == true ? 3 : null,
+        'children':
+            (block['isLoop'] == true || block['isFunction'] == true)
+                ? List<Map<String, dynamic>>.from(
+                    block['children'] ?? [])
+                : null,
+        'isLoop': block['isLoop'] ?? false,
+        'isFunction': block['isFunction'] ?? false,
+        'configured': block['configured'] ?? false,
+      });
+    });
+  }
+
+  void removeBlock(Map<String, dynamic> block,
+      List<Map<String, dynamic>> targetList) {
+    setState(() => targetList.remove(block));
+  }
+
+  void clearWorkspace() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        title: const Text('Limpiar workspace',
+            style: TextStyle(
+                color: AppColors.textPrimary, fontSize: 16)),
+        content: const Text('¿Eliminar todos los bloques?',
+            style: TextStyle(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar',
+                  style:
+                      TextStyle(color: AppColors.textSecondary))),
+          TextButton(
+            onPressed: () {
+              setState(() => workspaceBlocks.clear());
+              Navigator.pop(ctx);
+            },
+            child: const Text('Limpiar',
+                style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildBlock(
+      Map<String, dynamic> block,
+      List<Map<String, dynamic>> parentList,
+      {bool isInFunctionConfig = false,
+      VoidCallback? onUpdate}) {
+    final bool isFunction = block['isFunction'] == true;
+
+    if (isFunction && !isInFunctionConfig) {
+      return BlockWidget(
+        name: block['name'],
+        color: AppColors.blockFunction,
+        icon: Icons.code_rounded,
+        onTap: () {
+          removeBlock(block, parentList);
+          onUpdate?.call();
+        },
+      );
+    }
+
+    if (block['children'] != null) {
+      final bool isConfiguredFunction =
+          isFunction && block['configured'] == true;
+      final Color cc =
+          isFunction ? AppColors.blockFunction : AppColors.blockLoop;
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 2),
+        decoration: BoxDecoration(
+          color: cc.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(12),
+          border:
+              Border.all(color: cc.withOpacity(0.45), width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 6, vertical: 4),
+              decoration: BoxDecoration(
+                color: cc.withOpacity(0.2),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(10)),
+              ),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: BlockWidget(
+                      name: block['isLoop'] == true
+                          ? 'Repetir'
+                          : block['name'],
+                      color: cc,
+                      icon: blockIcon(block),
+                      compact: true,
+                      onTap: () {
+                        removeBlock(block, parentList);
+                        onUpdate?.call();
+                      },
+                    ),
+                  ),
+                  if (block['isLoop'] == true)
+                    _LoopCounter(
+                      value: block['times'] ?? 1,
+                      onDecrement: () {
+                        setState(() {
+                          if (block['times'] > 1) block['times']--;
+                        });
+                        onUpdate?.call();
+                      },
+                      onIncrement: () {
+                        setState(() {
+                          block['times']++;
+                        });
+                        onUpdate?.call();
+                      },
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(6),
+              child: isConfiguredFunction
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: (block['children']
+                              as List<Map<String, dynamic>>)
+                          .map<Widget>((b) => buildBlock(b,
+                              b['children'] ?? [],
+                              onUpdate: onUpdate))
+                          .toList(),
+                    )
+                  : DragTarget<Map<String, dynamic>>(
+                      onAccept: (subBlock) {
+                        addBlock(subBlock, block['children']
+                            as List<Map<String, dynamic>>);
+                        onUpdate?.call();
+                      },
+                      builder: (context, candidateData, _) {
+                        final bool hovering =
+                            candidateData.isNotEmpty;
+                        final children = block['children']
+                            as List<Map<String, dynamic>>;
+                        return AnimatedContainer(
+                          duration:
+                              const Duration(milliseconds: 150),
+                          constraints:
+                              const BoxConstraints(minHeight: 44),
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: hovering
+                                ? cc.withOpacity(0.18)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: hovering
+                                  ? cc.withOpacity(0.8)
+                                  : Colors.transparent,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: children.isEmpty && !hovering
+                              ? Center(
+                                  child: Text('Suelta aquí',
+                                      style: TextStyle(
+                                          color:
+                                              cc.withOpacity(0.5),
+                                          fontSize: 11)))
+                              : Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: children
+                                      .map<Widget>((b) => buildBlock(
+                                          b, children,
+                                          isInFunctionConfig:
+                                              isInFunctionConfig,
+                                          onUpdate: onUpdate))
+                                      .toList(),
+                                ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return BlockWidget(
+      name: block['name'],
+      color: workspaceColor(block),
+      icon: blockIcon(block),
+      onTap: () {
+        removeBlock(block, parentList);
+        onUpdate?.call();
+      },
+    );
+  }
+
+  Future<void> configureFunction(
+      Map<String, dynamic> funcBlock) async {
+    final Map<String, dynamic> tempFunction = {
+      'name': funcBlock['name'],
+      'isFunction': true,
+      'children':
+          List<Map<String, dynamic>>.from(funcBlock['children'] ?? []),
+    };
+    final nameController =
+        TextEditingController(text: tempFunction['name']);
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+              horizontal: 12, vertical: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: AppColors.blockFunction.withOpacity(0.35),
+                  width: 1.5),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 13),
+                  decoration: BoxDecoration(
+                    color: AppColors.blockFunction.withOpacity(0.12),
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(19)),
+                    border: Border(
+                        bottom: BorderSide(
+                            color: AppColors.blockFunction
+                                .withOpacity(0.18))),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.code_rounded,
+                        color: AppColors.blockFunction, size: 18),
+                    SizedBox(width: 8),
+                    Text('Configurar Función',
+                        style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: nameController,
+                          style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13),
+                          decoration: InputDecoration(
+                            labelText: 'Nombre de la función',
+                            labelStyle: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12),
+                            filled: true,
+                            fillColor: AppColors.surfaceLight,
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(10),
+                                borderSide: BorderSide.none),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                  color: AppColors.blockFunction,
+                                  width: 1.5),
+                            ),
+                            prefixIcon: const Icon(
+                                Icons.label_outline_rounded,
+                                color: AppColors.textSecondary,
+                                size: 16),
+                            contentPadding:
+                                const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 11),
+                          ),
+                          onChanged: (v) => setStateDialog(
+                              () => tempFunction['name'] = v),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height:
+                              MediaQuery.of(context).size.height *
+                                  0.42,
+                          child: Row(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 108,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('BLOQUES',
+                                        style: TextStyle(
+                                            color: AppColors
+                                                .textSecondary,
+                                            fontSize: 10,
+                                            fontWeight:
+                                                FontWeight.w700,
+                                            letterSpacing: 0.7)),
+                                    const SizedBox(height: 6),
+                                    Expanded(
+                                      child: Container(
+                                        padding:
+                                            const EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                            color:
+                                                AppColors.toolboxBg,
+                                            borderRadius:
+                                                BorderRadius.circular(
+                                                    10)),
+                                        child: ListView(
+                                          children: toolbox
+                                              .where((b) =>
+                                                  b['isFunction'] !=
+                                                  true)
+                                              .map((b) =>
+                                                  Draggable<
+                                                      Map<String,
+                                                          dynamic>>(
+                                                    data: b,
+                                                    feedback: Material(
+                                                        color: Colors
+                                                            .transparent,
+                                                        child: BlockWidget(
+                                                            name: b[
+                                                                'name'],
+                                                            color: toolboxColor(
+                                                                b),
+                                                            isDragging:
+                                                                true,
+                                                            icon: blockIcon(
+                                                                b),
+                                                            compact:
+                                                                true)),
+                                                    child: BlockWidget(
+                                                        name: b[
+                                                            'name'],
+                                                        color:
+                                                            toolboxColor(
+                                                                b),
+                                                        icon:
+                                                            blockIcon(
+                                                                b),
+                                                        compact:
+                                                            true),
+                                                  ))
+                                              .toList(),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('SECUENCIA',
+                                        style: TextStyle(
+                                            color: AppColors
+                                                .textSecondary,
+                                            fontSize: 10,
+                                            fontWeight:
+                                                FontWeight.w700,
+                                            letterSpacing: 0.7)),
+                                    const SizedBox(height: 6),
+                                    Expanded(
+                                      child: DragTarget<
+                                          Map<String, dynamic>>(
+                                        onAccept: (b) {
+                                          addBlock(
+                                              b,
+                                              tempFunction['children']
+                                                  as List<Map<String,
+                                                      dynamic>>);
+                                          setStateDialog(() {});
+                                        },
+                                        builder: (context,
+                                            candidateData, _) {
+                                          final children =
+                                              tempFunction['children']
+                                                  as List<Map<String,
+                                                      dynamic>>;
+                                          final bool hovering =
+                                              candidateData.isNotEmpty;
+                                          return AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 150),
+                                            padding:
+                                                const EdgeInsets.all(
+                                                    7),
+                                            decoration: BoxDecoration(
+                                              color: hovering
+                                                  ? AppColors
+                                                      .blockFunction
+                                                      .withOpacity(
+                                                          0.08)
+                                                  : AppColors
+                                                      .toolboxBg,
+                                              borderRadius:
+                                                  BorderRadius
+                                                      .circular(10),
+                                              border: Border.all(
+                                                color: hovering
+                                                    ? AppColors
+                                                        .blockFunction
+                                                        .withOpacity(
+                                                            0.6)
+                                                    : AppColors
+                                                        .surfaceLight,
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                            child: children.isEmpty
+                                                ? Center(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize
+                                                              .min,
+                                                      children: [
+                                                        Icon(
+                                                            Icons
+                                                                .drag_indicator_rounded,
+                                                            color: AppColors
+                                                                .textSecondary
+                                                                .withOpacity(
+                                                                    0.35),
+                                                            size: 26),
+                                                        const SizedBox(
+                                                            height: 6),
+                                                        Text(
+                                                            'Arrastra bloques aquí',
+                                                            style: TextStyle(
+                                                                color: AppColors
+                                                                    .textSecondary
+                                                                    .withOpacity(
+                                                                        0.45),
+                                                                fontSize:
+                                                                    11)),
+                                                      ],
+                                                    ))
+                                                : SingleChildScrollView(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .stretch,
+                                                      children: children
+                                                          .map<Widget>((b) =>
+                                                              buildBlock(
+                                                                  b,
+                                                                  children,
+                                                                  isInFunctionConfig:
+                                                                      true,
+                                                                  onUpdate: () =>
+                                                                      setStateDialog(
+                                                                          () {})))
+                                                          .toList(),
+                                                    ),
+                                                  ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                  decoration: BoxDecoration(
+                      border: Border(
+                          top: BorderSide(
+                              color: AppColors.surfaceLight))),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 11),
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(10),
+                                side: BorderSide(
+                                    color: AppColors.textSecondary
+                                        .withOpacity(0.2))),
+                          ),
+                          child: const Text('Cancelar',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13)),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              funcBlock['name'] =
+                                  tempFunction['name'];
+                              funcBlock['children'] =
+                                  List<Map<String, dynamic>>.from(
+                                      tempFunction['children']);
+                              funcBlock['configured'] = true;
+                            });
+                            Navigator.pop(context);
+                          },
+                          icon: const Icon(Icons.check_rounded,
+                              size: 15),
+                          label: const Text('Guardar',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                AppColors.blockFunction,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 11),
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  final List<int> dx = [-1, 0, 1, 0];
+  final List<int> dy = [0, 1, 0, -1];
+  final List<String> dirNombre = ['Norte', 'Este', 'Sur', 'Oeste'];
+
+  int? direccionAlRecoger;
+  late List<List<int>> mapa;
+  late int kx, ky;
+  int direccion = 0;
+  int zTotales = 0;
+  int zRecogidos = 0;
+
+  void initMapa() {
+    direccion = widget.level.startDirection;
+    zTotales = 0;
+    zRecogidos = 0;
+    direccionAlRecoger = null;
+
+    final rawMap = widget.level.rawMap;
+    final rows = rawMap.length;
+    final cols = rawMap[0].length;
+    mapa = List.generate(rows, (_) => List.filled(cols, 0));
+
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        final v = rawMap[i][j];
+        if (v == 'i') {
+          mapa[i][j] = -1;
+        } else {
+          mapa[i][j] = int.parse(v);
+          if (mapa[i][j] == 2) zTotales++;
+        }
+      }
+    }
+
+    kx = widget.level.startRow;
+    ky = widget.level.startCol;
+  }
+
+  Future<void> showLevelImage() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        final isPortrait =
+            MediaQuery.of(context).orientation == Orientation.portrait;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: isPortrait
+              ? Column(mainAxisSize: MainAxisSize.min, children: [
+                  _levelImageBox(context, widget.level.imagePath1),
+                  const SizedBox(height: 10),
+                  const Icon(Icons.arrow_downward_rounded,
+                      size: 34, color: AppColors.accent),
+                  const SizedBox(height: 10),
+                  _levelImageBox(context, widget.level.imagePath2),
+                ])
+              : Row(mainAxisSize: MainAxisSize.min, children: [
+                  _levelImageBox(context, widget.level.imagePath1),
+                  const SizedBox(width: 10),
+                  const Icon(Icons.arrow_forward_rounded,
+                      size: 34, color: AppColors.accent),
+                  const SizedBox(width: 10),
+                  _levelImageBox(context, widget.level.imagePath2),
+                ]),
+        );
+      },
+    );
+  }
+
+  Widget _levelImageBox(BuildContext context, String assetPath) {
+    final size = MediaQuery.of(context).size;
+    final imageSize = (size.shortestSide).clamp(170.0, 260.0);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+          width: imageSize,
+          height: imageSize,
+          child: Image.asset(assetPath, fit: BoxFit.cover)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      appBar: _buildAppBar(),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/home/homeBg.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+          child: Column(
+            children: [
+              _buildObjectiveBanner(),
+              const SizedBox(height: 8),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildToolbox(),
+                    const SizedBox(width: 8),
+                    _buildWorkspace()
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildExecuteButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      centerTitle: true,
+      surfaceTintColor: Colors.transparent,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(
+            height: 1,
+            color: AppColors.accent.withOpacity(0.18)),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new,
+            color: AppColors.textSecondary),
+        onPressed: () => context.go('/levelView'),
+      ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.13),
+                borderRadius: BorderRadius.circular(8)),
+            child: const Icon(Icons.smart_toy_rounded,
+                size: 17, color: AppColors.accent),
+          ),
+          const SizedBox(width: 10),
+          Text(widget.level.title,
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                  letterSpacing: 0.4)),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 6),
+          child: Center(
+            child: Consumer<BluetoothManager>(
+              builder: (context, bt, _) => Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(16)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                        bt.isConnected
+                            ? Icons.bluetooth_connected
+                            : Icons.bluetooth_disabled,
+                        color: bt.isConnected
+                            ? Colors.greenAccent
+                            : Colors.redAccent,
+                        size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                        bt.isConnected ? 'BT' : 'Sin BT',
+                        style: TextStyle(
+                            color: bt.isConnected
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: BlockCounterBadge(count: totalBlockCount),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildObjectiveBanner() {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+            color: AppColors.accent.withOpacity(0.13), width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(7)),
+            child: const Icon(Icons.flag_rounded,
+                color: AppColors.accent, size: 15),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+              child: Text(widget.level.objectiveDescription,
+                  style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToolbox() {
+    return SizedBox(
+      width: 128,
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: showLevelImage,
+            child: Stack(
+              children: [
+                Container(
+                  height: 105,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.accent.withOpacity(0.28),
+                        width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppColors.accent.withOpacity(0.07),
+                          blurRadius: 10)
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Image.asset(widget.level.imagePath1,
+                        fit: BoxFit.cover, width: double.infinity),
+                  ),
+                ),
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 5, vertical: 3),
+                    decoration: BoxDecoration(
+                        color: AppColors.bg.withOpacity(0.82),
+                        borderRadius: BorderRadius.circular(5)),
+                    child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.zoom_out_map_rounded,
+                              color: AppColors.accent, size: 10),
+                          SizedBox(width: 3),
+                          Text('Ver',
+                              style: TextStyle(
+                                  color: AppColors.accent,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700)),
+                        ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 7),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.surfaceLight, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(10, 9, 10, 5),
+                    child: Row(children: [
+                      Container(
+                          width: 3,
+                          height: 11,
+                          decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              borderRadius:
+                                  BorderRadius.circular(2))),
+                      const SizedBox(width: 6),
+                      const Text('TOOLBOX',
+                          style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.7)),
+                    ]),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding:
+                          const EdgeInsets.fromLTRB(5, 0, 5, 5),
+                      children: toolbox.map((b) {
+                        if (b['isFunction'] == true) {
+                          return Row(children: [
+                            Expanded(
+                              child: Draggable<
+                                  Map<String, dynamic>>(
+                                data: b['configured'] == true
+                                    ? b
+                                    : null,
+                                feedback: Material(
+                                    color: Colors.transparent,
+                                    child: BlockWidget(
+                                        name: b['name'],
+                                        color: toolboxColor(b),
+                                        isDragging: true,
+                                        icon: blockIcon(b),
+                                        compact: true)),
+                                child: BlockWidget(
+                                  name: b['name'],
+                                  color: b['configured'] == true
+                                      ? AppColors.blockFunction
+                                      : AppColors.blockFunction
+                                          .withOpacity(0.45),
+                                  icon: blockIcon(b),
+                                  compact: true,
+                                ),
+                                onDragStarted: () {
+                                  if (b['configured'] != true)
+                                    configureFunction(b);
+                                },
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => configureFunction(b),
+                              child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                      Icons.settings_rounded,
+                                      size: 14,
+                                      color: b['configured'] == true
+                                          ? AppColors.blockFunction
+                                          : AppColors
+                                              .textSecondary)),
+                            ),
+                          ]);
+                        }
+                        return Padding(
+                          padding:
+                              const EdgeInsets.only(bottom: 3),
+                          child: Draggable<Map<String, dynamic>>(
+                            data: b,
+                            feedback: Material(
+                                color: Colors.transparent,
+                                child: BlockWidget(
+                                    name: b['name'],
+                                    color: toolboxColor(b),
+                                    isDragging: true,
+                                    icon: blockIcon(b),
+                                    compact: true)),
+                            child: BlockWidget(
+                                name: b['name'],
+                                color: toolboxColor(b),
+                                icon: blockIcon(b),
+                                compact: true),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkspace() {
+    final bool empty = workspaceBlocks.isEmpty;
+    return Expanded(
+      flex: 3,
+      child: DragTarget<Map<String, dynamic>>(
+        onAccept: (block) => addBlock(block, workspaceBlocks),
+        builder: (context, candidateData, _) {
+          final bool hovering = candidateData.isNotEmpty;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: hovering
+                    ? AppColors.accent.withOpacity(0.75)
+                    : _feedbackColor != null
+                        ? _feedbackColor!.withOpacity(0.4)
+                        : AppColors.surfaceLight,
+                width:
+                    hovering || _feedbackColor != null ? 1.5 : 1,
+              ),
+              boxShadow: hovering
+                  ? [
+                      BoxShadow(
+                          color: AppColors.accent.withOpacity(0.1),
+                          blurRadius: 16)
+                    ]
+                  : _feedbackColor != null
+                      ? [
+                          BoxShadow(
+                              color: _feedbackColor!.withOpacity(0.1),
+                              blurRadius: 16)
+                        ]
+                      : [],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(13)),
+                  ),
+                  child: Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 3,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color:
+                              _feedbackColor ?? AppColors.accent,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      const Text('WORKSPACE',
+                          style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.7)),
+                      const Spacer(),
+                      if (!empty)
+                        GestureDetector(
+                          onTap: clearWorkspace,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color:
+                                  AppColors.error.withOpacity(0.1),
+                              borderRadius:
+                                  BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                      Icons
+                                          .delete_outline_rounded,
+                                      size: 12,
+                                      color: AppColors.error),
+                                  SizedBox(width: 3),
+                                  Text('Limpiar',
+                                      style: TextStyle(
+                                          color: AppColors.error,
+                                          fontSize: 10,
+                                          fontWeight:
+                                              FontWeight.w600)),
+                                ]),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: empty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.drag_indicator_rounded,
+                                  size: 30,
+                                  color: hovering
+                                      ? AppColors.accent
+                                      : AppColors.textSecondary
+                                          .withOpacity(0.25)),
+                              const SizedBox(height: 7),
+                              Text(
+                                hovering
+                                    ? 'Suelta el bloque'
+                                    : 'Arrastra bloques aquí',
+                                style: TextStyle(
+                                  color: hovering
+                                      ? AppColors.accent
+                                      : AppColors.textSecondary
+                                          .withOpacity(0.35),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView(
+                          padding: const EdgeInsets.all(7),
+                          children: workspaceBlocks
+                              .map((b) =>
+                                  buildBlock(b, workspaceBlocks))
+                              .toList(),
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildExecuteButton() {
+    return ScaleTransition(
+      scale: _executeScale,
+      child: GestureDetector(
+        onTap: _isExecuting ? null : ejecutar,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isExecuting
+                  ? [AppColors.accentDim, AppColors.accentDim]
+                  : [
+                      AppColors.accent,
+                      const Color(0xFF00B4D8)
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accent
+                    .withOpacity(_isExecuting ? 0.08 : 0.28),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              )
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedRotation(
+                turns: _isExecuting ? 1 : 0,
+                duration: const Duration(milliseconds: 400),
+                child: Icon(
+                    _isExecuting
+                        ? Icons.sync_rounded
+                        : Icons.play_arrow_rounded,
+                    color: AppColors.bg,
+                    size: 21),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                  _isExecuting ? 'Enviando...' : 'Ejecutar',
+                  style: const TextStyle(
+                      color: AppColors.bg,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoopCounter extends StatelessWidget {
+  final int value;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+
+  const _LoopCounter(
+      {required this.value,
+      required this.onDecrement,
+      required this.onIncrement});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _btn(Icons.remove_rounded, onDecrement),
+        Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: 9, vertical: 3),
+          decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.22),
+              borderRadius: BorderRadius.circular(6)),
+          child: Text('$value',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
+        ),
+        _btn(Icons.add_rounded, onIncrement),
+      ],
+    );
+  }
+
+  Widget _btn(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(6)),
+        child: Icon(icon, size: 13, color: Colors.white),
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\nivel\view\view.dart =====
+export 'nivel_screen.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\nivel\nivel.dart =====
+export '../nivel/view/view.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\niveles\view\niveles_nivel.dart =====
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../shared/classes/classes.dart';
+import '../../../shared/extensions.dart';
+
+class VistaNiveles extends StatelessWidget {
+  const VistaNiveles({
+    super.key,
+    required this.niveles,
+    required this.constraints,
+  });
+
+  final List<Nivel> niveles;
+  final BoxConstraints constraints;
+
+  @override
+  Widget build(BuildContext context) {
+    return constraints.isMobile
+        ? Column(
+            children: [
+              for (final nivel in niveles) _buildLevelCard(context, nivel),
+            ],
+          )
+        : Row(
+            children: [
+              for (final nivel in niveles)
+                Flexible(child: _buildLevelCard(context, nivel)),
+            ],
+          );
+  }
+
+  Widget _buildLevelCard(BuildContext context, Nivel nivel) {
+    final height = MediaQuery.of(context).size.height;
+    final isLocked = nivel.locked;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      child: Opacity(
+        opacity: isLocked ? 0.55 : 1.0,
+        child: Card(
+          elevation: isLocked ? 2 : 10,
+          color: const Color.fromARGB(255, 12, 0, 82),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: isLocked
+                ? () => _showLockedDialog(context)
+                : () => context.go('/levelView/${nivel.id}'),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          nivel.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      if (isLocked)
+                        const Icon(Icons.lock_rounded,
+                            color: Colors.white54, size: 22)
+                      else
+                        StarRating(filledStars: nivel.stars),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 145, 147, 255),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.black12),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _imageBox(nivel.startImage, height * 0.12),
+                            _imageBox(
+                                'assets/levelView/levelArrow.png', 32),
+                            _imageBox(nivel.endImage, height * 0.12),
+                          ],
+                        ),
+                        if (isLocked)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black45,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Icon(Icons.lock_rounded,
+                                  color: Colors.white70, size: 36),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLockedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A2535),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_rounded, color: Colors.white54),
+            SizedBox(width: 10),
+            Text('Nivel bloqueado',
+                style: TextStyle(color: Colors.white, fontSize: 16)),
+          ],
+        ),
+        content: const Text(
+          'Completa el nivel anterior para desbloquear este.',
+          style: TextStyle(color: Colors.white60),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Entendido',
+                style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _imageBox(String path, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(path, fit: BoxFit.contain),
+      ),
+    );
+  }
+}
+
+class StarRating extends StatelessWidget {
+  final int filledStars;
+  final int totalStars;
+
+  const StarRating({
+    super.key,
+    required this.filledStars,
+    this.totalStars = 3,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(totalStars, (index) {
+        return Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Image.asset(
+            index < filledStars
+                ? 'assets/imagenesNiveles/Estrella.png'
+                : 'assets/imagenesNiveles/EstrellaVacia.png',
+            height: 30,
+            fit: BoxFit.contain,
+          ),
+        );
+      }),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\niveles\view\niveles_preview.dart =====
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; 
+
+import 'niveles_screen.dart';
+
+void main() {
+  runApp(MyApp());
+
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(),
+      child: MaterialApp(
+        title: 'Niveles',
+        theme: ThemeData(
+          useMaterial3: true,  
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        ),
+        home: NivelesPreview(),
+      ),
+    );
+  }
+}
+class MyAppState extends ChangeNotifier {
+
+}
+
+class NivelesPreview extends StatefulWidget {
+  const NivelesPreview({super.key});
+
+  @override
+  State<NivelesPreview> createState() =>_NivelesPreviewState();
+}
+
+class _NivelesPreviewState extends State<NivelesPreview> {
+   @override
+  Widget build(BuildContext context) {
+    return NivelesScreen();
+  } 
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\niveles\view\niveles_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/providers/providers.dart';
+import '../../../shared/providers/progress_manager.dart';
+import '../../../shared/views/views.dart';
+import '../../../shared/controllers/controllers.dart';
+import '../view/niveles_nivel.dart';
+
+class NivelesScreen extends StatelessWidget {
+  const NivelesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final niveles = NivelesProvider().niveles;
+    final bt = context.watch<BluetoothManager>();
+    // Escucha cambios de progreso para redibujar estrellas/candados
+    final progress = context.watch<ProgressManager>();
+
+    // Mezcla los datos estáticos con el progreso guardado
+    final nivelesConProgreso = niveles.map((n) {
+      return n.copyWith(
+        stars: progress.getStars(n.id),
+        locked: !progress.isUnlocked(n.id),
+      );
+    }).toList();
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/home/homeBg.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new,
+                                color: Colors.white),
+                            onPressed: () => context.go('/'),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black38,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  bt.isConnected
+                                      ? Icons.bluetooth_connected
+                                      : Icons.bluetooth_disabled,
+                                  color: bt.isConnected
+                                      ? Colors.greenAccent
+                                      : Colors.redAccent,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  bt.isConnected
+                                      ? 'Conectado'
+                                      : 'Sin conexión',
+                                  style: TextStyle(
+                                    color: bt.isConnected
+                                        ? Colors.greenAccent
+                                        : Colors.redAccent,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: constraints.maxHeight * 0.02),
+                    const TitleCard(text: 'NIVELES'),
+                    SizedBox(height: constraints.maxHeight * 0.03),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 8),
+                        child: VistaNiveles(
+                          niveles: nivelesConProgreso,
+                          constraints: constraints,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\niveles\niveles.dart =====
+export 'view/niveles_screen.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\principal\view\principal_button.dart =====
+
+import 'package:flutter/material.dart';
+//import 'package:url_launcher/url_launcher.dart';
+
+
+class HomeButton extends StatelessWidget {
+  const HomeButton({
+    super.key
+  });
+  
+
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context , constraints ){
+        return ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(
+                    vertical: constraints.maxHeight * 0.04,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  textStyle: TextStyle(
+                    fontSize: constraints.maxHeight * 0.06,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: const Text('Jugar'),
+              );
+      }
+      
+      );
+  }
+
+}
+
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\principal\view\principal_preview.dart =====
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'principal_screen.dart';
+
+void main() {
+  runApp(MyApp());
+
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(),
+      child: MaterialApp(
+        title: 'HomeScreen',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        ),
+        home: MyHomePage(),
+      ),
+    );
+  }
+}
+class MyAppState extends ChangeNotifier {
+
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+   @override
+  Widget build(BuildContext context) {
+    return HomeScreen();
+  } 
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\principal\view\principal_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/views/views.dart';
+import '../../../shared/controllers/controllers.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final bt = context.watch<BluetoothManager>(); 
+
+    return AdaptativeScreen(
+      backgroundImage: 'assets/home/homeBg.jpg',
+      titleImage: 'assets/home/homeTitle.png',
+      height: height,
+      children: [
+        SizedBox(
+          width: height * 0.45,
+          child: ElevatedButton(
+            onPressed: () => context.go('/levelView'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              padding: EdgeInsets.symmetric(vertical: height * 0.03),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: TextStyle(
+                fontSize: height * 0.05,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            child: const Text('Jugar'),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  iconSize: height * 0.07,
+                  icon: const Icon(Icons.settings, color: Colors.white),
+                  onPressed: () => context.go('/settings'),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black38,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        bt.isConnected
+                            ? Icons.bluetooth_connected
+                            : Icons.bluetooth_disabled,
+                        color: bt.isConnected ? Colors.greenAccent : Colors.redAccent,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        bt.isConnected ? 'Conectado' : 'Sin conexión',
+                        style: TextStyle(
+                          color: bt.isConnected ? Colors.greenAccent : Colors.redAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\principal\view\view.dart =====
+export 'principal_button.dart';  
+export 'principal_screen.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\principal\principal.dart =====
+export 'view/view.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\features\features.dart =====
+export 'configuracion/settings.dart';
+export 'niveles/niveles.dart';
+export 'principal/principal.dart';
+export 'nivel/nivel.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\classes\classes.dart =====
+export 'niveles.dart';
+export 'nivel.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\classes\nivel.dart =====
+typedef KarelDirection = int;
+
+class LevelData {
+  final String title;
+  final String id;
+  final String objectiveDescription;
+  final List<List<String>> rawMap;
+  final int startRow;
+  final int startCol;
+  final KarelDirection startDirection;
+  final KarelDirection winDirection;
+  final int threeStarMaxBlocks;
+  final int twoStarMaxBlocks;
+  final String imagePath1;
+  final String imagePath2;
+
+  final List<ToolboxBlockConfig>? availableBlocks;
+
+  const LevelData({
+    required this.title,
+    required this.id,
+    required this.objectiveDescription,
+    required this.rawMap,
+    required this.startRow,
+    required this.startCol,
+    required this.startDirection,
+    required this.winDirection,
+    required this.threeStarMaxBlocks,
+    required this.twoStarMaxBlocks,
+    required this.imagePath1,
+    required this.imagePath2,
+    this.availableBlocks,
+  });
+  int calculateStars(int totalBlocks) {
+    if (totalBlocks <= threeStarMaxBlocks) return 3;
+    if (totalBlocks <= twoStarMaxBlocks) return 2;
+    return 1;
+  }
+}
+class ToolboxBlockConfig {
+  final String name;
+  final String? code;
+  final bool isLoop;
+  final bool isFunction;
+
+  const ToolboxBlockConfig({
+    required this.name,
+    this.code,
+    this.isLoop = false,
+    this.isFunction = false,
+  });
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\classes\niveles.dart =====
+import 'package:flutter/material.dart';
+
+class Nivel {
+  const Nivel({
+    required this.id,
+    required this.startImage,
+    required this.endImage,
+    this.height = 200,
+    required this.title,
+    this.stars = 0,
+    this.color = const Color.fromARGB(255, 13, 22, 78),
+    this.locked = true,
+  });
+
+  final String startImage;
+  final String endImage;
+  final double height;
+  final String title;
+  final int stars;
+  final Color color;
+  final String id;
+  final bool locked;
+
+  Nivel copyWith({
+    String? id,
+    String? startImage,
+    String? endImage,
+    double? height,
+    String? title,
+    int? stars,
+    Color? color,
+    bool? locked,
+  }) {
+    return Nivel(
+      id: id ?? this.id,
+      startImage: startImage ?? this.startImage,
+      endImage: endImage ?? this.endImage,
+      height: height ?? this.height,
+      title: title ?? this.title,
+      stars: stars ?? this.stars,
+      color: color ?? this.color,
+      locked: locked ?? this.locked,
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\controllers\bluetooth_manager.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter_bluetooth_classic_serial/flutter_bluetooth_classic.dart';
+
+class BluetoothManager extends ChangeNotifier {
+  static final BluetoothManager _instance = BluetoothManager._internal();
+  factory BluetoothManager() => _instance;
+  BluetoothManager._internal();
+
+  final FlutterBluetoothClassic _bluetooth = FlutterBluetoothClassic();
+
+  bool _isConnected = false;
+  String? _connectedAddress;
+  String? _connectedName;
+
+  bool get isConnected => _isConnected;
+  String? get connectedAddress => _connectedAddress;
+  String? get connectedName => _connectedName;
+
+  Future<bool> connect(String address, {String? name}) async {
+    try {
+      bool success = await _bluetooth.connect(address);
+      if (success) {
+        _isConnected = true;
+        _connectedAddress = address;
+        _connectedName = name;
+        notifyListeners();
+      }
+      return success;
+    } catch (e) {
+      debugPrint('BluetoothManager.connect error: $e');
+      return false;
+    }
+  }
+
+  Future<void> disconnect() async {
+    try {
+      await _bluetooth.disconnect();
+    } catch (_) {}
+    _isConnected = false;
+    _connectedAddress = null;
+    _connectedName = null;
+    notifyListeners();
+  }
+
+  Future<void> send(String data) async {
+    if (!_isConnected) return;
+    try {
+      await _bluetooth.sendString(data);
+    } catch (e) {
+      debugPrint('BluetoothManager.send error: $e');
+      _isConnected = false;
+      notifyListeners();
+    }
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\controllers\controllers.dart =====
+export 'bluetooth_manager.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\providers\niveles.dart =====
+
+import 'package:collection/collection.dart';
+import '../classes/classes.dart';
+
+class NivelesProvider {
+  static NivelesProvider get shared => NivelesProvider();
+
+  List<Nivel> get niveles => const [
+    Nivel(
+      id: 'tutorial',
+      startImage: 'assets/imagenesNiveles/tutorial_1.png',
+      endImage: 'assets/imagenesNiveles/tutorial_2.png',
+      title: 'Tutorial',
+    ),
+    Nivel(
+      id: 'nivel_1',
+      startImage: 'assets/imagenesNiveles/nivel1_1.png',
+      endImage: 'assets/imagenesNiveles/nivel1_2.png',
+      title: 'Nivel 1'
+    ),
+    Nivel(
+      id: 'nivel_2',
+      startImage: 'assets/imagenesNiveles/nivel2_1.png',
+      endImage: 'assets/imagenesNiveles/nivel2_2.png',
+      title: 'Nivel 2'
+    ),
+
+  ];
+
+  Nivel? getNivel(String id) {
+    return niveles.firstWhereOrNull((nivel) => nivel.id == id);
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\providers\niveles_data.dart =====
+import '../classes/classes.dart';
+
+class Levels {
+  static const LevelData tutorial = LevelData(
+    title: 'Tutorial',
+    id: 'tutorial',
+    objectiveDescription: 'El objetivo es avanzar y recoger el zumbador, arrastra el bloque avanzar.',
+    startRow: 5,
+    startCol: 1,
+    startDirection: 2, // Norte
+    winDirection: 2,   // Norte
+    threeStarMaxBlocks: 2,
+    twoStarMaxBlocks: 4,
+    imagePath1: 'assets/imagenesNiveles/tutorial_1.png',
+    imagePath2: 'assets/imagenesNiveles/tutorial_2.png',
+    rawMap: [
+      ['i','i','i','i','i','i','i','i','i','i','i'],
+      ['i','1','0','1','0','1','0','1','0','1','i'],
+      ['i','0','0','0','0','0','0','0','0','0','i'],
+      ['i','1','0','1','0','1','0','1','0','1','i'],
+      ['i','0','i','i','i','i','i','0','0','0','i'],
+      ['i','1','i','1','0','1','i','1','0','1','i'],
+      ['i','0','i','0','i','0','i','0','0','0','i'],
+      ['i','1','i','1','i','1','i','1','0','1','i'],
+      ['i','0','i','i','i','0','i','0','0','0','i'],
+      ['i','2','0','1','0','1','i','1','0','1','i'],
+      ['i','i','i','i','i','i','i','i','i','i','i'],
+    ],
+  );
+
+  static const LevelData level1 = LevelData(
+    title: 'Nivel 1',
+    id: 'nivel_1',
+    objectiveDescription: 'Recoge el zumbador mirando hacia el Este.',
+    startRow: 5,
+    startCol: 1,
+    startDirection: 2, // Norte
+    winDirection: 1,   // Este  ← corregido (1 = Este, no 2)
+    threeStarMaxBlocks: 5,
+    twoStarMaxBlocks: 8,
+    imagePath1: 'assets/imagenesNiveles/nivel1_1.png',
+    imagePath2: 'assets/imagenesNiveles/nivel1_2.png',
+    rawMap: [
+      ['i','i','i','i','i','i','i'],
+      ['i','1','0','1','0','1','i'],
+      ['i','0','0','0','0','0','i'],
+      ['i','1','0','1','0','1','i'],
+      ['i','0','i','i','i','i','i'],
+      ['i','1','i','2','0','1','i'],
+      ['i','i','i','i','i','i','i'],
+    ],
+    availableBlocks: [
+      ToolboxBlockConfig(name: 'Avanzar',   code: 'A'),
+      ToolboxBlockConfig(name: 'Giro Der.', code: 'D'),
+      ToolboxBlockConfig(name: 'Sensor',    code: 'S'),
+      ToolboxBlockConfig(name: 'Repetir',   isLoop: true),
+    ],
+  );
+
+  static const LevelData level2 = LevelData(
+    title: 'Nivel 2',
+    id: 'nivel_2',
+    objectiveDescription:
+        'Guía al Karelito hasta la meta usando bloques de código.',
+    startRow: 7,
+    startCol: 3,
+    startDirection: 0, // Norte
+    winDirection: 3,   // Oeste
+    threeStarMaxBlocks: 6,
+    twoStarMaxBlocks: 9,
+    imagePath1: 'assets/imagenesNiveles/nivel2_1.png',
+    imagePath2: 'assets/imagenesNiveles/nivel2_2.png',
+    rawMap: [
+      ['i','i','i','i','i','i','i','i','i','i','i'],
+      ['i','1','0','1','0','1','0','1','0','1','i'],
+      ['i','0','i','i','i','i','i','i','i','0','i'],
+      ['i','1','i','1','0','1','0','1','i','1','i'],
+      ['i','0','i','0','0','0','0','0','i','0','i'],
+      ['i','1','i','1','0','1','0','1','i','1','i'],
+      ['i','0','i','0','0','0','0','0','i','0','i'],
+      ['i','1','i','1','0','2','0','1','i','1','i'],
+      ['i','0','i','0','i','i','i','i','i','0','i'],
+      ['i','1','0','1','0','1','0','1','0','1','i'],
+      ['i','i','i','i','i','i','i','i','i','i','i'],
+    ],
+  );
+
+  static List<LevelData> get all => [tutorial, level1, level2];
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\providers\progress_manager.dart =====
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ProgressManager extends ChangeNotifier {
+  static final ProgressManager _instance = ProgressManager._internal();
+  factory ProgressManager() => _instance;
+  ProgressManager._internal();
+
+  static const String _starsPrefix = 'stars_';
+  static const String _unlockedPrefix = 'unlocked_';
+
+  // IDs de niveles en orden
+  static const List<String> levelOrder = ['tutorial', 'nivel_1', 'nivel_2'];
+
+  SharedPreferences? _prefs;
+  bool _loaded = false;
+
+  Future<void> load() async {
+    if (_loaded) return;
+    _prefs = await SharedPreferences.getInstance();
+    _loaded = true;
+    await _unlock('tutorial');
+  }
+
+  int getStars(String levelId) {
+    return _prefs?.getInt('$_starsPrefix$levelId') ?? 0;
+  }
+
+  Future<void> saveStars(String levelId, int stars) async {
+    final current = getStars(levelId);
+    if (stars <= current) return; // solo guardamos si mejora
+    await _prefs?.setInt('$_starsPrefix$levelId', stars);
+    notifyListeners();
+  }
+
+  // ── Candado ────────────────────────────────────────────────
+  bool isUnlocked(String levelId) {
+    if (levelId == 'tutorial') return true;
+    return _prefs?.getBool('$_unlockedPrefix$levelId') ?? false;
+  }
+
+  Future<void> _unlock(String levelId) async {
+    await _prefs?.setBool('$_unlockedPrefix$levelId', true);
+  }
+
+  /// Llama esto al completar un nivel. Desbloquea el siguiente.
+  Future<void> completeLevel(String levelId, int stars) async {
+    await saveStars(levelId, stars);
+    final idx = levelOrder.indexOf(levelId);
+    if (idx >= 0 && idx + 1 < levelOrder.length) {
+      await _unlock(levelOrder[idx + 1]);
+    }
+    notifyListeners();
+  }
+
+  Future<void> resetAll() async {
+    await _prefs?.clear();
+    await _unlock('tutorial');
+    notifyListeners();
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\providers\providers.dart =====
+export './theme.dart';
+export './niveles.dart';
+export './niveles_data.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\providers\theme.dart =====
+
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:material_color_utilities/material_color_utilities.dart';
+
+class NoAnimationPageTransitionsBuilder extends PageTransitionsBuilder {
+  const NoAnimationPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
+  }
+}
+
+class ThemeSettingChange extends Notification {
+  ThemeSettingChange({required this.settings});
+  final ThemeSettings settings;
+}
+
+class ThemeProvider extends InheritedWidget {
+  const ThemeProvider({
+    super.key,
+    required this.settings,
+    required this.lightDynamic,
+    required this.darkDynamic,
+    required super.child,
+  });
+
+  final ValueNotifier<ThemeSettings> settings;
+  final ColorScheme? lightDynamic;
+  final ColorScheme? darkDynamic;
+
+  final pageTransitionsTheme = const PageTransitionsTheme(
+    builders: <TargetPlatform, PageTransitionsBuilder>{
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.linux: NoAnimationPageTransitionsBuilder(),
+      TargetPlatform.macOS: NoAnimationPageTransitionsBuilder(),
+      TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),
+    },
+  );
+
+  Color custom(CustomColor custom) {
+    if (custom.blend) {
+      return blend(custom.color);
+    } else {
+      return custom.color;
+    }
+  }
+
+  Color blend(Color targetColor) {
+    return Color(
+      Blend.harmonize(
+        targetColor.toARGB32(),
+        settings.value.sourceColor.toARGB32(),
+      ),
+    );
+  }
+
+  Color source(Color? target) {
+    Color source = settings.value.sourceColor;
+    if (target != null) {
+      source = blend(target);
+    }
+    return source;
+  }
+
+  ColorScheme colors(Brightness brightness, Color? targetColor) {
+    final dynamicPrimary = brightness == Brightness.light
+        ? lightDynamic?.primary
+        : darkDynamic?.primary;
+    return ColorScheme.fromSeed(
+      seedColor: dynamicPrimary ?? source(targetColor),
+      brightness: brightness,
+    );
+  }
+
+  ShapeBorder get shapeMedium =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8));
+
+  CardThemeData cardTheme() {
+    return CardThemeData(
+      elevation: 0,
+      shape: shapeMedium,
+      clipBehavior: Clip.antiAlias,
+    );
+  }
+
+  ListTileThemeData listTileTheme(ColorScheme colors) {
+    return ListTileThemeData(
+      shape: shapeMedium,
+      selectedColor: colors.secondary,
+    );
+  }
+
+  AppBarTheme appBarTheme(ColorScheme colors) {
+    return AppBarTheme(
+      elevation: 0,
+      backgroundColor: colors.surface,
+      foregroundColor: colors.onSurface,
+    );
+  }
+
+  TabBarThemeData tabBarTheme(ColorScheme colors) {
+    return TabBarThemeData(
+      labelColor: colors.secondary,
+      unselectedLabelColor: colors.onSurfaceVariant,
+      indicator: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.secondary, width: 2)),
+      ),
+    );
+  }
+
+  BottomAppBarThemeData bottomAppBarTheme(ColorScheme colors) {
+    return BottomAppBarThemeData(color: colors.surface, elevation: 0);
+  }
+
+  BottomNavigationBarThemeData bottomNavigationBarTheme(ColorScheme colors) {
+    return BottomNavigationBarThemeData(
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: colors.surfaceContainerHighest,
+      selectedItemColor: colors.onSurface,
+      unselectedItemColor: colors.onSurfaceVariant,
+      elevation: 0,
+      landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
+    );
+  }
+
+  NavigationRailThemeData navigationRailTheme(ColorScheme colors) {
+    return const NavigationRailThemeData();
+  }
+
+  DrawerThemeData drawerTheme(ColorScheme colors) {
+    return DrawerThemeData(backgroundColor: colors.surface);
+  }
+
+  ThemeData light([Color? targetColor]) {
+    final colorScheme = colors(Brightness.light, targetColor);
+    return ThemeData.light().copyWith(
+      colorScheme: colorScheme,
+      appBarTheme: appBarTheme(colorScheme),
+      cardTheme: cardTheme(),
+      listTileTheme: listTileTheme(colorScheme),
+      bottomAppBarTheme: bottomAppBarTheme(colorScheme),
+      bottomNavigationBarTheme: bottomNavigationBarTheme(colorScheme),
+      navigationRailTheme: navigationRailTheme(colorScheme),
+      tabBarTheme: tabBarTheme(colorScheme),
+      drawerTheme: drawerTheme(colorScheme),
+      scaffoldBackgroundColor: colorScheme.surface,
+    );
+  }
+
+  ThemeData dark([Color? targetColor]) {
+    final colorScheme = colors(Brightness.dark, targetColor);
+    return ThemeData.dark().copyWith(
+      colorScheme: colorScheme,
+      appBarTheme: appBarTheme(colorScheme),
+      cardTheme: cardTheme(),
+      listTileTheme: listTileTheme(colorScheme),
+      bottomAppBarTheme: bottomAppBarTheme(colorScheme),
+      bottomNavigationBarTheme: bottomNavigationBarTheme(colorScheme),
+      navigationRailTheme: navigationRailTheme(colorScheme),
+      tabBarTheme: tabBarTheme(colorScheme),
+      drawerTheme: drawerTheme(colorScheme),
+      scaffoldBackgroundColor: colorScheme.surface,
+    );
+  }
+
+  ThemeMode themeMode() {
+    return settings.value.themeMode;
+  }
+
+  ThemeData theme(BuildContext context, [Color? targetColor]) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    return brightness == Brightness.light
+        ? light(targetColor)
+        : dark(targetColor);
+  }
+
+  static ThemeProvider of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ThemeProvider>()!;
+  }
+
+  @override
+  bool updateShouldNotify(covariant ThemeProvider oldWidget) {
+    return oldWidget.settings != settings;
+  }
+}
+
+class ThemeSettings {
+  ThemeSettings({required this.sourceColor, required this.themeMode});
+
+  final Color sourceColor;
+  final ThemeMode themeMode;
+}
+
+Color randomColor() {
+  return Color(Random().nextInt(0xFFFFFFFF));
+}
+
+const linkColor = CustomColor(name: 'Link Color', color: Color(0xFF00B0FF));
+
+class CustomColor {
+  const CustomColor({
+    required this.name,
+    required this.color,
+    this.blend = true,
+  });
+
+  final String name;
+  final Color color;
+  final bool blend;
+
+  Color value(ThemeProvider provider) {
+    return provider.custom(this);
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\action_button.dart =====
+import 'package:flutter/material.dart';
+
+class ActionButton extends StatelessWidget {
+  const ActionButton({
+    super.key,
+    required this.color,
+    required this.text,
+    this.onTap,
+  });
+
+  final Color color;
+  final String text;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(24.0),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          height: 150.0,
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 18.0, color: Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\adaptative_screen.dart =====
+import 'package:flutter/material.dart';
+
+class AdaptativeScreen extends StatelessWidget {
+  final String backgroundImage;
+  final String titleImage;
+  final List<Widget> children;
+  final double height;
+
+  const AdaptativeScreen({
+    super.key,
+    required this.children,
+    required this.backgroundImage,
+    required this.titleImage,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            width: constraints.maxWidth,
+            height: constraints.maxHeight,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(backgroundImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Column(
+              children: [
+                SizedBox(height: constraints.maxHeight * 0.05),
+                Image.asset(
+                  titleImage,
+                  width: constraints.maxHeight * 0.6, 
+                  fit: BoxFit.contain,
+                ),
+                SizedBox(height: constraints.maxHeight * 0.08), 
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: children,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\adaptive_image_card.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+import 'image_clipper.dart';
+
+class AdaptiveImageCard extends StatelessWidget {
+  const AdaptiveImageCard({
+    super.key,
+    required this.image,
+    required this.child,
+    required this.constraints,
+    this.axis = Axis.horizontal,
+  });
+
+  final String image;
+  final Widget child;
+  final BoxConstraints constraints;
+  final Axis axis;
+
+  @override
+  Widget build(BuildContext context) {
+    if (axis == Axis.vertical) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: ClippedImage(
+              image,
+              height: constraints.biggest.height * 0.4,
+            ),
+          ),
+          Expanded(
+            child: Padding(padding: const EdgeInsets.all(20), child: child),
+          ),
+        ],
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, bottom: 20, top: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          const SizedBox(width: 40),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: ClippedImage(
+              image,
+              width: constraints.biggest.height * 0.8,
+              height: constraints.biggest.height * 0.8,
+              fit: BoxFit.fitWidth,
+            ),
+          ),
+          Expanded(
+            child: Padding(padding: const EdgeInsets.all(20), child: child),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\adaptive_navigation.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class AdaptiveNavigation extends StatelessWidget {
+  const AdaptiveNavigation({
+    super.key,
+    required this.destinations,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.child,
+  });
+
+  final List<NavigationDestination> destinations;
+  final int selectedIndex;
+  final void Function(int index) onDestinationSelected;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, dimens) {
+        return Scaffold(
+          body: Row(
+            children: [
+              NavigationRail(
+                extended: dimens.maxWidth >= 800,
+                minExtendedWidth: 180,
+                destinations: destinations
+                    .map(
+                      (e) => NavigationRailDestination(
+                        icon: e.icon,
+                        label: Text(e.label),
+                      ),
+                    )
+                    .toList(),
+                selectedIndex: selectedIndex,
+                onDestinationSelected: onDestinationSelected,
+              ),
+              Expanded(child: child),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\adaptive_table.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class AdaptiveTable<T> extends StatelessWidget {
+  const AdaptiveTable({
+    super.key,
+    required this.items,
+    required this.itemBuilder,
+    required this.rowBuilder,
+    required this.columns,
+    this.breakpoint = 600,
+  });
+
+  final List<T> items;
+  final Widget Function(T item, int index) itemBuilder;
+  final DataRow Function(T item, int index) rowBuilder;
+  final List<DataColumn> columns;
+  final double breakpoint;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, dimens) {
+        if (dimens.maxWidth >= breakpoint) {
+          return DataTable(
+            columns: columns,
+            rows: [
+              for (var i = 0; i < items.length; i++) rowBuilder(items[i], i),
+            ],
+          );
+        }
+        return ListView.builder(
+          shrinkWrap: true,
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return itemBuilder(item, index);
+          },
+        );
+      },
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\article_content.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class ArticleContent extends StatelessWidget {
+  const ArticleContent({super.key, required this.child, this.maxWidth = 960});
+
+  final double maxWidth;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Padding(padding: const EdgeInsets.all(15), child: child),
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\brightness_toggle.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+import '../providers/providers.dart';
+
+class BrightnessToggle extends StatelessWidget {
+  const BrightnessToggle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      icon: Theme.of(context).brightness == Brightness.light
+          ? const Icon(Icons.brightness_3)
+          : const Icon(Icons.brightness_7),
+      onPressed: () {
+        final themeProvider = ThemeProvider.of(context);
+        final settings = themeProvider.settings.value;
+        final newSettings = ThemeSettings(
+          sourceColor: settings.sourceColor,
+          themeMode: isDark ? ThemeMode.light : ThemeMode.dark,
+        );
+        ThemeSettingChange(settings: newSettings).dispatch(context);
+      },
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\center_row.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class CenterRow extends StatelessWidget {
+  const CenterRow({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [Expanded(child: Center(child: child))],
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\clickable copy.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class Clickable extends StatelessWidget {
+  const Clickable({required this.child, required this.onTap, super.key});
+
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(onTap: onTap, child: child),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\clickable.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class Clickable extends StatelessWidget {
+  const Clickable({required this.child, required this.onTap, super.key});
+
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(onTap: onTap, child: child),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\hover_toggle.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class HoverToggle extends StatefulWidget {
+  const HoverToggle({
+    super.key,
+    required this.child,
+    required this.hoverChild,
+    required this.size,
+    this.mode = HoverMode.replace,
+  });
+
+  final Widget child;
+  final Widget hoverChild;
+  final HoverMode mode;
+  final Size size;
+
+  @override
+  State<HoverToggle> createState() => _HoverToggleState();
+}
+
+class _HoverToggleState extends State<HoverToggle> with MaterialStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.fromSize(
+      size: widget.size,
+      child: MouseRegion(
+        cursor: isHovered ? SystemMouseCursors.click : MouseCursor.defer,
+        onEnter: (_) => setMaterialState(WidgetState.hovered, true),
+        onExit: (_) => setMaterialState(WidgetState.hovered, false),
+        child: widget.mode == HoverMode.replace
+            ? _buildReplaceableChildren()
+            : _buildChildrenStack(),
+      ),
+    );
+  }
+
+  Widget _buildChildrenStack() {
+    Widget child = isHovered
+        ? Opacity(opacity: 0.2, child: widget.child)
+        : widget.child;
+    return Stack(children: <Widget>[child, if (isHovered) widget.hoverChild]);
+  }
+
+  Widget _buildReplaceableChildren() =>
+      isHovered ? widget.hoverChild : widget.child;
+}
+
+enum HoverMode { replace, overlay }
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\image_card.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+import '../../shared/extensions.dart';
+import 'outlined_card.dart';
+
+class ImageCard extends StatelessWidget {
+  const ImageCard({
+    super.key,
+    required this.title,
+    required this.details,
+    required this.image,
+    this.subtitle,
+    this.clickable = false,
+  });
+
+  final String title;
+  final String? subtitle;
+  final String details;
+  final String image;
+  final bool clickable;
+
+  @override
+  Widget build(BuildContext context) {
+    const padding = EdgeInsets.all(8.0);
+    return OutlinedCard(
+      clickable: clickable,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Row(
+              children: [
+                if (constraints.maxWidth > 600)
+                  SizedBox(
+                    width: 170,
+                    height: 170,
+                    child: Image.asset(image, fit: BoxFit.cover),
+                  ),
+                Expanded(
+                  child: Padding(
+                    padding: padding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Text(
+                            title,
+                            style: context.titleLarge!.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        if (subtitle != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text(subtitle!, style: context.labelMedium),
+                          ),
+                        Text(
+                          details,
+                          style: context.labelMedium?.copyWith(
+                            fontSize: 16,
+                            height: 1.25,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\image_clipper.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class ClippedImage extends StatelessWidget {
+  const ClippedImage(
+    this.image, {
+    this.fit,
+    this.height,
+    this.width,
+    super.key,
+  });
+
+  final String image;
+  final BoxFit? fit;
+  final double? width, height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.asset(
+        image,
+        fit: fit ?? BoxFit.cover,
+        height: height,
+        width: width,
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\image_tile.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+import '../extensions.dart';
+import 'outlined_card.dart';
+
+class ImageTile extends StatelessWidget {
+  const ImageTile({
+    super.key,
+    required this.image,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String image;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [Expanded(child: Image.asset(image, fit: BoxFit.cover))],
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: context.titleSmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 10,
+                ),
+                child: Text(
+                  subtitle,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.labelSmall!.copyWith(fontSize: 10),
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\outlined_card.dart =====
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+class OutlinedCard extends StatefulWidget {
+  const OutlinedCard({super.key, required this.child, this.clickable = true});
+
+  final Widget child;
+  final bool clickable;
+
+  @override
+  State<OutlinedCard> createState() => _OutlinedCardState();
+}
+
+class _OutlinedCardState extends State<OutlinedCard> {
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: widget.clickable
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      child: Container(child: widget.child),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\title_card.dart =====
+import 'package:flutter/material.dart';
+
+class TitleCard extends StatelessWidget {
+  final String text;
+
+  const TitleCard({
+    super.key,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: SizedBox(
+        width: height * 0.5,
+        height: height * 0.1, 
+        child: Card(
+          elevation: 8,
+          color: const Color.fromARGB(255, 255, 240, 240),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: height * 0.05,
+                color: const Color.fromARGB(255, 0, 0, 0),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\views\views.dart =====
+export 'adaptive_table.dart';
+export 'article_content.dart';
+export 'brightness_toggle.dart';
+export 'center_row.dart';
+export 'clickable.dart';
+export 'hover_toggle.dart';
+export 'image_card.dart';
+export 'image_tile.dart';
+export 'action_button.dart';
+export 'title_card.dart';
+export 'adaptative_screen.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\app.dart =====
+
+import 'package:flutter/material.dart';
+import 'providers/theme.dart';
+import 'router.dart';
+
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+
+class _MyAppState extends State<MyApp> {
+  final settings = ValueNotifier(
+    ThemeSettings(sourceColor: Colors.pink, themeMode: ThemeMode.system),
+  );
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        routeInformationParser: appRouter.routeInformationParser,
+        routeInformationProvider: appRouter.routeInformationProvider,
+        routerDelegate: appRouter.routerDelegate,
+                  
+      );
+    }
+  }
+
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\extensions.dart =====
+
+import 'package:flutter/material.dart';
+
+extension TypographyUtils on BuildContext {
+  ThemeData get theme => Theme.of(this);
+  TextTheme get textTheme => theme.textTheme;
+  ColorScheme get colors => theme.colorScheme;
+  TextStyle? get displayLarge =>
+      textTheme.displayLarge?.copyWith(color: colors.onSurface);
+  TextStyle? get displayMedium =>
+      textTheme.displayMedium?.copyWith(color: colors.onSurface);
+  TextStyle? get displaySmall =>
+      textTheme.displaySmall?.copyWith(color: colors.onSurface);
+  TextStyle? get headlineLarge =>
+      textTheme.headlineLarge?.copyWith(color: colors.onSurface);
+  TextStyle? get headlineMedium =>
+      textTheme.headlineMedium?.copyWith(color: colors.onSurface);
+  TextStyle? get headlineSmall =>
+      textTheme.headlineSmall?.copyWith(color: colors.onSurface);
+  TextStyle? get titleLarge =>
+      textTheme.titleLarge?.copyWith(color: colors.onSurface);
+  TextStyle? get titleMedium =>
+      textTheme.titleMedium?.copyWith(color: colors.onSurface);
+  TextStyle? get titleSmall =>
+      textTheme.titleSmall?.copyWith(color: colors.onSurface);
+  TextStyle? get labelLarge =>
+      textTheme.labelLarge?.copyWith(color: colors.onSurface);
+  TextStyle? get labelMedium =>
+      textTheme.labelMedium?.copyWith(color: colors.onSurface);
+  TextStyle? get labelSmall =>
+      textTheme.labelSmall?.copyWith(color: colors.onSurface);
+  TextStyle? get bodyLarge =>
+      textTheme.bodyLarge?.copyWith(color: colors.onSurface);
+  TextStyle? get bodyMedium =>
+      textTheme.bodyMedium?.copyWith(color: colors.onSurface);
+  TextStyle? get bodySmall =>
+      textTheme.bodySmall?.copyWith(color: colors.onSurface);
+}
+
+extension BreakpointUtils on BoxConstraints {
+  bool get isTablet => maxWidth > 730;
+  bool get isDesktop => maxWidth > 1200;
+  bool get isMobile => !isTablet && !isDesktop;
+}
+
+extension DurationString on String {
+  /// Assumes a string (roughly) of the format '\d{1,2}:\d{2}'
+  Duration toDuration() => switch (split(':')) {
+    [var minutes, var seconds] => Duration(
+      minutes: int.parse(minutes.trim()),
+      seconds: int.parse(seconds.trim()),
+    ),
+    [var hours, var minutes, var seconds] => Duration(
+      hours: int.parse(hours.trim()),
+      minutes: int.parse(minutes.trim()),
+      seconds: int.parse(seconds.trim()),
+    ),
+    _ => throw Exception('Invalid duration string: $this'),
+  };
+}
+
+extension HumanizedDuration on Duration {
+  String toHumanizedString() {
+    final seconds = '${inSeconds % 60}'.padLeft(2, '0');
+    String minutes = '${inMinutes % 60}';
+    if (inHours > 0 || inMinutes == 0) {
+      minutes = minutes.padLeft(2, '0');
+    }
+    String value = '$minutes:$seconds';
+    if (inHours > 0) {
+      value = '$inHours:$minutes:$seconds';
+    }
+    return value;
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\shared\router.dart =====
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../features/features.dart';
+import '../shared/providers/providers.dart';
+import '../shared/providers/progress_manager.dart';
+
+class AppRouteDestination {
+  const AppRouteDestination({
+    required this.route,
+    required this.label,
+    required this.icon,
+  });
+
+  final String route;
+  final String label;
+  final Icon icon;
+}
+
+const List<AppRouteDestination> destinations = [
+  AppRouteDestination(
+    label: 'Home',
+    icon: Icon(Icons.home_rounded),
+    route: '/',
+  ),
+  AppRouteDestination(
+    label: 'Settings',
+    icon: Icon(Icons.settings_rounded),
+    route: '/settings',
+  ),
+  AppRouteDestination(
+    label: 'Niveles',
+    icon: Icon(Icons.grid_view_rounded),
+    route: '/levelView',
+  ),
+];
+
+/// Devuelve el id del nivel a partir de la ruta, o null si no aplica.
+String? _levelIdFromPath(String path) {
+  const map = {
+    '/levelView/tutorial': 'tutorial',
+    '/levelView/nivel_1': 'nivel_1',
+    '/levelView/nivel_2': 'nivel_2',
+  };
+  return map[path];
+}
+
+final appRouter = GoRouter(
+  initialLocation: '/',
+  redirect: (context, state) {
+    final levelId = _levelIdFromPath(state.matchedLocation);
+    if (levelId != null) {
+      final progress = ProgressManager();
+      if (!progress.isUnlocked(levelId)) {
+        // Nivel bloqueado → redirige a la pantalla de niveles
+        return '/levelView';
+      }
+    }
+    return null; // sin redirección
+  },
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/levelView',
+      builder: (context, state) => const NivelesScreen(),
+    ),
+    GoRoute(
+      path: '/settings/bluetooth',
+      builder: (context, state) => const ConnectionScreen(),
+    ),
+    GoRoute(
+      path: '/levelView/tutorial',
+      builder: (context, state) => const LevelScreen(level: Levels.tutorial),
+    ),
+    GoRoute(
+      path: '/levelView/nivel_1',
+      builder: (context, state) => const LevelScreen(level: Levels.level1),
+    ),
+    GoRoute(
+      path: '/levelView/nivel_2',
+      builder: (context, state) => const LevelScreen(level: Levels.level2),
+    ),
+  ],
+);
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\utils\adaptive_breakpoints.dart =====
+// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+import 'package:flutter/material.dart';
+
+/// Adaptive Window in Material has five different window sizes. Each window size
+/// represents a range of devices.
+///
+/// Extra small represents phones and small tablets in portrait view.
+/// Small represents tablets in portrait view and phones in landscape view.
+/// Medium represents large tablets in landscape view.
+/// Large represents computer screens.
+/// Extra large represents large computer screens.
+///
+/// https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+class AdaptiveWindowType {
+  const AdaptiveWindowType._({
+    required this.name,
+    required this.relativeSize,
+    required this.widthRangeValues,
+    required this.heightLandscapeRangeValues,
+    required this.heightPortraitRangeValues,
+  });
+
+  /// Name based on the [AdaptiveWindowType].
+  ///
+  /// Can be: xsmall, small, medium, large or xlarge
+  final String name;
+
+  /// Used to set custom comparison operators for the [AdaptiveWindowType] enum.
+  final int relativeSize;
+
+  /// Valid range of width for this window type.
+  final RangeValues widthRangeValues;
+
+  /// Valid range of height for this window type on landscape mode.
+  final RangeValues heightLandscapeRangeValues;
+
+  /// Valid range of height for this window type on portrait mode.
+  final RangeValues heightPortraitRangeValues;
+
+  static const AdaptiveWindowType xsmall = AdaptiveWindowType._(
+    name: 'xsmall',
+    relativeSize: 0,
+    widthRangeValues: RangeValues(0, 599),
+    heightLandscapeRangeValues: RangeValues(0, 359),
+    heightPortraitRangeValues: RangeValues(0, 959),
+  );
+
+  static const AdaptiveWindowType small = AdaptiveWindowType._(
+    name: 'small',
+    relativeSize: 1,
+    widthRangeValues: RangeValues(600, 1023),
+    heightLandscapeRangeValues: RangeValues(360, 719),
+    heightPortraitRangeValues: RangeValues(360, 1599),
+  );
+
+  static const AdaptiveWindowType medium = AdaptiveWindowType._(
+    name: 'medium',
+    relativeSize: 2,
+    widthRangeValues: RangeValues(1024, 1439),
+    heightLandscapeRangeValues: RangeValues(720, 959),
+    heightPortraitRangeValues: RangeValues(720, 1919),
+  );
+
+  static const AdaptiveWindowType large = AdaptiveWindowType._(
+    name: 'large',
+    relativeSize: 3,
+    widthRangeValues: RangeValues(1440, 1919),
+    heightLandscapeRangeValues: RangeValues(960, 1279),
+    heightPortraitRangeValues: RangeValues(1920, double.infinity),
+  );
+
+  static const AdaptiveWindowType xlarge = AdaptiveWindowType._(
+    name: 'xlarge',
+    relativeSize: 4,
+    widthRangeValues: RangeValues(1920, double.infinity),
+    heightLandscapeRangeValues: RangeValues(1280, double.infinity),
+    heightPortraitRangeValues: RangeValues(1920, double.infinity),
+  );
+
+  bool operator <=(AdaptiveWindowType other) =>
+      relativeSize <= other.relativeSize;
+
+  bool operator <(AdaptiveWindowType other) =>
+      relativeSize < other.relativeSize;
+
+  bool operator >=(AdaptiveWindowType other) =>
+      relativeSize >= other.relativeSize;
+
+  bool operator >(AdaptiveWindowType other) =>
+      relativeSize > other.relativeSize;
+}
+
+/// This class represents the Material breakpoint system entry.
+/// https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+class BreakpointSystemEntry {
+  const BreakpointSystemEntry({
+    required this.range,
+    this.portrait,
+    this.landscape,
+    required this.adaptiveWindowType,
+    required this.columns,
+    required this.margin,
+    required this.gutter,
+  });
+
+  /// The breakpoint range values represents a width range.
+  final RangeValues range;
+
+  /// Type of device which uses this breakpoint range in portrait view.
+  final String? portrait;
+
+  /// Type of device which uses this breakpoint range in landscape view.
+  final String? landscape;
+
+  /// Material generalizes the device size into five different windows: extra
+  /// small, small, medium, large, and extra large.
+  ///
+  /// The adaptive window represents a set of similar devices. For example, if
+  /// you want to create an adaptive layout for phones and small tablets you
+  /// would check if your window width is within the range of xsmall and s. If your
+  /// user has a bigger window size than you would create a different layout for
+  /// larger screens.
+  final AdaptiveWindowType adaptiveWindowType;
+
+  /// The number of columns in this breakpoint system entry.
+  /// https://material.io/design/layout/responsive-layout-grid.html#columns-gutters-and-margins
+  final int columns;
+
+  /// The size of margins in pixels in this breakpoint system entry.
+  /// Typically the same as gutters.
+  /// https://material.io/design/layout/responsive-layout-grid.html#columns-gutters-and-margins
+  final double margin;
+
+  /// The size of gutters in pixels in this breakpoint system entry. Typically
+  /// the same as margins.
+  ///
+  /// Gutters represents the space between the columns.
+  ///
+  /// https://material.io/design/layout/responsive-layout-grid.html#columns-gutters-and-margins
+  final double gutter;
+}
+
+/// This list represents the material breakpoint system.
+/// https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+///
+/// This list is in sequential order.
+const List<BreakpointSystemEntry> breakpointSystem = [
+  BreakpointSystemEntry(
+    range: RangeValues(0, 359),
+    portrait: 'small handset',
+    adaptiveWindowType: AdaptiveWindowType.xsmall,
+    columns: 4,
+    margin: 16.0,
+    gutter: 16.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(360, 399),
+    portrait: 'medium handset',
+    adaptiveWindowType: AdaptiveWindowType.xsmall,
+    columns: 4,
+    margin: 16.0,
+    gutter: 16.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(400, 479),
+    portrait: 'large handset',
+    adaptiveWindowType: AdaptiveWindowType.xsmall,
+    columns: 4,
+    margin: 16.0,
+    gutter: 16.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(480, 599),
+    portrait: 'large handset',
+    landscape: 'small handset',
+    adaptiveWindowType: AdaptiveWindowType.xsmall,
+    columns: 4,
+    margin: 16.0,
+    gutter: 16.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(600, 719),
+    portrait: 'small tablet',
+    landscape: 'medium handset',
+    adaptiveWindowType: AdaptiveWindowType.small,
+    columns: 8,
+    margin: 16.0,
+    gutter: 16.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(720, 839),
+    portrait: 'large tablet',
+    landscape: 'large handset',
+    adaptiveWindowType: AdaptiveWindowType.small,
+    columns: 8,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(840, 959),
+    portrait: 'large tablet',
+    landscape: 'large handset',
+    adaptiveWindowType: AdaptiveWindowType.small,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(960, 1023),
+    landscape: 'small tablet',
+    adaptiveWindowType: AdaptiveWindowType.small,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(1024, 1279),
+    landscape: 'large tablet',
+    adaptiveWindowType: AdaptiveWindowType.medium,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(1280, 1439),
+    landscape: 'large tablet',
+    adaptiveWindowType: AdaptiveWindowType.medium,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(1440, 1599),
+    portrait: 'small handset',
+    adaptiveWindowType: AdaptiveWindowType.large,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(1600, 1919),
+    portrait: 'small handset',
+    adaptiveWindowType: AdaptiveWindowType.large,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+  BreakpointSystemEntry(
+    range: RangeValues(1920, double.infinity),
+    portrait: 'small handset',
+    adaptiveWindowType: AdaptiveWindowType.xlarge,
+    columns: 12,
+    margin: 24.0,
+    gutter: 24.0,
+  ),
+];
+
+/// Returns the [AdaptiveWindowType] to the user.
+///
+/// This is useful when the user wants to compare the MediaQuery to the current
+/// window size.
+AdaptiveWindowType getWindowType(BuildContext context) {
+  return getBreakpointEntry(context).adaptiveWindowType;
+}
+
+/// Returns the [BreakpointSystemEntry] to the user.
+///
+/// Typically the developer will use the getWindowType function. Using this
+/// function gives the developer access to the specific breakpoint entry and
+/// it's variables.
+BreakpointSystemEntry getBreakpointEntry(BuildContext context) {
+  double width = MediaQuery.sizeOf(context).width;
+  for (BreakpointSystemEntry entry in breakpointSystem) {
+    if (entry.range.start <= width && width < entry.range.end + 1) {
+      return entry;
+    }
+  }
+  throw AssertionError('Something unexpected happened');
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\utils\adaptive_column.dart =====
+// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+import 'adaptive_breakpoints.dart';
+import 'adaptive_container.dart';
+
+/// The [AdaptiveColumn] follows the Material guideline for responsive grids.
+///
+/// https://material.io/design/layout/responsive-layout-grid.html#columns-gutters-and-margins
+///
+/// This widget intigrates with the [AdaptiveContainer] widget.
+/// The [AdaptiveContainer] widget has a parameter called columns which represents
+/// the amount of columns it should take according to the breakpoints package.
+///
+/// So if the user has 6 adaptive container and each container represents two columns
+/// then the 6 adaptive container would all fit within one Row on a extra large screen
+/// because extra large screens have 12 columns per row.
+///
+/// Learn more about the breakpoint system:
+///
+/// https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+class AdaptiveColumn extends StatelessWidget {
+  /// Creates a vertical array of children. Going from left to right and then
+  /// top to bottom.
+  ///
+  /// This class has a responsive layout that is based of the adaptive breakpoints
+  /// package. The user puts in [AdaptiveContainer] widgets as children and each
+  /// child has a columm parameter. This represents the amount of columns it takes
+  /// up in its current row. So if the child has three [AdaptiveContainer] widgets
+  /// with each column set to 4 than on an extra-small screen each container would use up
+  /// the entire width of the device. On an extra-large screen the three containers
+  /// would fit across the row. This is because extra large devices allow up to
+  /// 12 columns to fit within the space.
+  ///
+  /// To see an example visit:
+  /// https://adaptive-components.web.app/#/
+  const AdaptiveColumn({
+    this.gutter,
+    this.margin,
+    required this.children,
+    super.key,
+  }) : assert(margin == null || margin >= 0),
+       assert(gutter == null || gutter >= 0);
+
+  /// Empty space at the left and right of this widget.
+  ///
+  /// By default the margins will be set differently on different devices. This
+  /// double value will be dependent of the breakpoint entry of the current screen.
+  ///
+  /// Learn more at https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+  final double? margin;
+
+  /// Represents the space between children.
+  ///
+  /// By default the gutter will be set differently on different devices. This
+  /// double value will be dependent of the breakpoint entry of the current screen.
+  ///
+  /// Learn more at https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+  final double? gutter;
+
+  /// The List of [AdaptiveContainer]. Adaptive container neeeds to be used
+  /// because the widget has a columnSpan parameter. This parameter represents the
+  /// amount of columns this widget should incompass.
+  ///
+  /// By default it is set to 1.
+  final List<AdaptiveContainer> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        BreakpointSystemEntry entry = getBreakpointEntry(context);
+        final double effectiveMargin = margin ?? entry.margin;
+        final double effectiveGutter = gutter ?? entry.gutter;
+
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: effectiveMargin),
+          constraints: BoxConstraints(
+            minWidth: entry.adaptiveWindowType.widthRangeValues.start,
+            maxWidth: entry.adaptiveWindowType.widthRangeValues.end,
+          ),
+          child: Wrap(
+            runSpacing: 8.0,
+            children: () {
+              int currentColumns = 0;
+              int totalGutters = 0;
+              List<Widget> children = [];
+              final List<AdaptiveContainer> row = [];
+
+              for (AdaptiveContainer child in this.children) {
+                // The if statement checks if the adaptiveContainer child fits
+                // within the adaptive constraints.
+                if (child.constraints.withinAdaptiveConstraint(context)) {
+                  row.add(child);
+                  currentColumns += child.columnSpan;
+
+                  if (currentColumns < entry.columns) {
+                    totalGutters++;
+                  } else {
+                    if (currentColumns > entry.columns) {
+                      totalGutters--;
+                    }
+                    int rowGutters = 0;
+                    for (AdaptiveContainer rowItem in row) {
+                      // Periodic width is the width of 1 column + 1 gutter.
+                      double periodicWidth =
+                          (MediaQuery.sizeOf(context).width -
+                              effectiveMargin * 2 +
+                              effectiveGutter) /
+                          entry.columns;
+
+                      // For a row item with a column span of k, its width is
+                      // k * column + (k - 1) * gutter, which equals
+                      // k * (column + gutter) - gutter, which is
+                      // k * periodicWidth - gutter.
+                      double maxWidth =
+                          periodicWidth * rowItem.columnSpan - effectiveGutter;
+                      children.add(
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: maxWidth,
+                            maxWidth: maxWidth,
+                          ),
+                          child: rowItem,
+                        ),
+                      );
+
+                      if (rowGutters < totalGutters && 1 < row.length) {
+                        children.add(
+                          SizedBox(width: effectiveGutter, child: Container()),
+                        );
+                        rowGutters++;
+                      }
+                    }
+                    totalGutters = 0;
+                    currentColumns = 0;
+                    row.clear();
+                  }
+                }
+              }
+              return children;
+            }(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\utils\adaptive_components.dart =====
+// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+export 'adaptive_column.dart';
+export 'adaptive_container.dart';
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\src\utils\adaptive_container.dart =====
+// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:flutter/material.dart';
+
+import 'adaptive_breakpoints.dart';
+
+/// [AdaptiveContainer] lets you create a [Container] with adaptive constraints.
+///
+/// The AdaptiveContainer does everything a normal container does but with
+/// adaptive constraints. For more information go to one of the links below.
+///
+/// https://api.flutter.dev/flutter/widgets/Container-class.html
+/// https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+///
+/// This class is useful whenever you want a container to only be active in
+/// certain [AdaptiveWindowType].
+class AdaptiveContainer extends StatelessWidget {
+  /// Creates a widget that combines common painting, positioning, and sizing widgets.
+  ///
+  /// The `color` and `decoration` arguments cannot both be supplied, since
+  /// it would potentially result in the decoration drawing over the background
+  /// color. To supply a decoration with a color, use `decoration:
+  /// BoxDecoration(color: color)`.
+  AdaptiveContainer({
+    super.key,
+    this.alignment,
+    this.padding,
+    this.color,
+    this.decoration,
+    this.foregroundDecoration,
+    this.margin,
+    this.transform,
+    this.height,
+    this.child,
+    this.clipBehavior = Clip.none,
+    constraints,
+    this.columnSpan = 1,
+  }) : assert(margin == null || margin.isNonNegative),
+       assert(padding == null || padding.isNonNegative),
+       assert(decoration == null || decoration.debugAssertIsValid()),
+       assert(
+         color == null || decoration == null,
+         'Cannot provide both a color and a decoration\n'
+         'To provide both, use "decoration: BoxDecoration(color: color)".',
+       ) {
+    this.constraints = constraints ?? const AdaptiveConstraints();
+  }
+
+  /// The [child] contained by the container.
+  ///
+  /// If null, and if the [constraints] are unbounded or also null, the
+  /// container will expand to fill all available space in its parent, unless
+  /// the parent provides unbounded constraints, in which case the container
+  /// will attempt to be as small as possible.
+  final Widget? child;
+
+  /// Represents how height the container should be.
+  final double? height;
+
+  /// Creates constraints for adaptive windows.
+  ///
+  /// This is used by the builder to see what type of screen the user wants this
+  /// [AdaptiveContainer] to fit within.
+  late final AdaptiveConstraints constraints;
+
+  /// columnSpan is used with [AdaptiveColumn] to represent
+  /// the amount of columns that this widget will fill up within a certain [Flex]
+  /// range.
+  ///
+  /// By default the columns will only represent one column space. If you want
+  /// this content of this widget to be shown increase it. There can be at most
+  /// 12 columns per flex range.
+  ///
+  /// Learn more by visiting the Material website:
+  /// https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+  final int columnSpan;
+
+  /// Align the [child] within the container.
+  ///
+  /// If non-null, the container will expand to fill its parent and position its
+  /// child within itself according to the given value. If the incoming
+  /// constraints are unbounded, then the child will be shrink-wrapped instead.
+  ///
+  /// Ignored if [child] is null.
+  ///
+  /// See also:
+  ///
+  ///  * [Alignment], a class with convenient constants typically used to
+  ///    specify an [AlignmentGeometry].
+  ///  * [AlignmentDirectional], like [Alignment] for specifying alignments
+  ///    relative to text direction.
+  final AlignmentGeometry? alignment;
+
+  /// Empty space to inscribe inside the [decoration]. The [child], if any, is
+  /// placed inside this padding.
+  ///
+  /// This padding is in addition to any padding inherent in the [decoration];
+  /// see [Decoration.padding].
+  final EdgeInsetsGeometry? padding;
+
+  /// The color to paint behind the [child].
+  ///
+  /// This property should be preferred when the background is a simple color.
+  /// For other cases, such as gradients or images, use the [decoration]
+  /// property.
+  ///
+  /// If the [decoration] is used, this property must be null. A background
+  /// color may still be painted by the [decoration] even if this property is
+  /// null.
+  final Color? color;
+
+  /// The decoration to paint behind the [child].
+  ///
+  /// Use the [color] property to specify a simple solid color.
+  ///
+  /// The [child] is not clipped to the decoration. To clip a child to the shape
+  /// of a particular [ShapeDecoration], consider using a [ClipPath] widget.
+  final Decoration? decoration;
+
+  /// The decoration to paint in front of the [child].
+  final Decoration? foregroundDecoration;
+
+  /// Empty space to surround the [decoration] and [child].
+  final EdgeInsetsGeometry? margin;
+
+  /// The transformation matrix to apply before painting the container.
+  final Matrix4? transform;
+
+  /// The clip behavior when [Container.decoration] has a clipPath.
+  ///
+  /// Defaults to [Clip.none].
+  final Clip clipBehavior;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, boxConstraints) {
+        if (constraints.withinAdaptiveConstraint(context)) {
+          return Container(
+            alignment: alignment,
+            padding: padding,
+            color: color,
+            decoration: decoration,
+            foregroundDecoration: foregroundDecoration,
+            transform: transform,
+            clipBehavior: clipBehavior,
+            height: height,
+            margin: margin,
+            child: child,
+          );
+        } else {
+          /// Since this container is not within the adaptive constraints.
+          /// No widget must be returned but since you can't return no widget we
+          /// are returning a [LimitedBox] which is a very efficent widget.
+          return LimitedBox(
+            maxWidth: 0.0,
+            maxHeight: 0.0,
+            child: ConstrainedBox(constraints: const BoxConstraints.expand()),
+          );
+        }
+      },
+    );
+  }
+}
+
+/// Used to see if a range of [AdaptiveWindowType] should be shown in the window.
+/// If the user sets one of the variables below to true than that window type
+/// should be shown within the [AdaptiveContainer].
+class AdaptiveConstraints {
+  const AdaptiveConstraints({
+    this.xsmall = true,
+    this.small = true,
+    this.medium = true,
+    this.large = true,
+    this.xlarge = true,
+  });
+
+  const AdaptiveConstraints.xsmall({
+    this.xsmall = true,
+    this.small = false,
+    this.medium = false,
+    this.large = false,
+    this.xlarge = false,
+  });
+
+  const AdaptiveConstraints.small({
+    this.xsmall = false,
+    this.small = true,
+    this.medium = false,
+    this.large = false,
+    this.xlarge = false,
+  });
+
+  const AdaptiveConstraints.medium({
+    this.xsmall = false,
+    this.small = false,
+    this.medium = true,
+    this.large = false,
+    this.xlarge = false,
+  });
+
+  const AdaptiveConstraints.large({
+    this.xsmall = false,
+    this.small = false,
+    this.medium = false,
+    this.large = true,
+    this.xlarge = false,
+  });
+
+  const AdaptiveConstraints.xlarge({
+    this.xsmall = false,
+    this.small = false,
+    this.medium = false,
+    this.large = false,
+    this.xlarge = true,
+  });
+
+  final bool xsmall;
+  final bool small;
+  final bool medium;
+  final bool large;
+  final bool xlarge;
+
+  bool withinAdaptiveConstraint(BuildContext context) {
+    AdaptiveWindowType currentEntry = getWindowType(context);
+
+    switch (currentEntry) {
+      case AdaptiveWindowType.xsmall:
+        return xsmall;
+      case AdaptiveWindowType.small:
+        return small;
+      case AdaptiveWindowType.medium:
+        return medium;
+      case AdaptiveWindowType.large:
+        return large;
+      case AdaptiveWindowType.xlarge:
+        return xlarge;
+      default:
+        throw AssertionError('Unsupported AdaptiveWindowType');
+    }
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'src/shared/router.dart';
+import 'src/shared/controllers/controllers.dart';
+import 'src/shared/providers/progress_manager.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await ProgressManager().load();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: BluetoothManager()),
+        ChangeNotifierProvider.value(value: ProgressManager()),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: appRouter,
+      title: 'Karelito',
+      theme: ThemeData(useMaterial3: true),
+    );
+  }
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\test\widget_test.dart =====
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:karelito/src/shared/app.dart';
+
+void main() {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(const MyApp());
+
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
+  });
+}
+
+===== C:\Users\PC\Downloads\KarelitoAndroid-master\KarelitoAndroid-master\pubspec.yaml =====
+name: karelito
+description: "Karelito."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  collection: ^1.19.1
+  cupertino_icons: ^1.0.8
+  dynamic_color: ^1.8.1
+  go_router: ^17.0.1
+  material_color_utilities: any
+  flutter_bluetooth_classic_serial: ^1.3.1
+  provider: ^6.1.5+1
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    - assets/home/
+    - assets/configuracion/
+    - assets/levelView/
+    - assets/imagenesNiveles/
+
+  uses-material-design: true
+
