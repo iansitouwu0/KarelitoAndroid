@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/classes/classes.dart';
 import '../../../shared/controllers/controllers.dart';
-import '../../../shared/providers/progress_manager.dart';
+import '../../../shared/providers/providers.dart';
 
 class AppColors {
   static const Color bg = Color(0xFF0F1923);
@@ -286,10 +286,14 @@ class _LevelScreenState extends State<LevelScreen>
     }
     return count;
   }
+int? _cachedBlockCount;
 
-  int get totalBlockCount =>
-      countBlocks(workspaceBlocks, isWorkspace: true) +
-      countConfiguredFunctions();
+int get totalBlockCount {
+  _cachedBlockCount ??= 
+    countBlocks(workspaceBlocks, isWorkspace: true) +
+    countConfiguredFunctions();
+  return _cachedBlockCount ?? 0;
+}
 
   String generateCode(List<Map<String, dynamic>> blocks) {
     String code = '';
@@ -327,24 +331,41 @@ class _LevelScreenState extends State<LevelScreen>
 
     for (int paso = 0; paso < code.length; paso++) {
       if (!mounted) return;
+      
       final inst = code[paso];
+      
       if (inst == ' ') continue;
+      
+      if (!bt.isConnected)return;
 
-      if (inst == 'A') {
-        final int nx1 = kx + dx[direccion];
-        final int ny1 = ky + dy[direccion];
-        final int celda1 = mapa[nx1][ny1];
+      switch(inst){
+        case 'A':
+          final int nx1 = kx + dx[direccion];
+          final int ny1 = ky + dy[direccion];
+          final int celda1 = mapa[nx1][ny1];
 
-        int nx, ny;
+          int nx, ny;
 
-        if (celda1 == 0) {
-          final int nx2 = kx + dx[direccion] * 2;
-          final int ny2 = ky + dy[direccion] * 2;
-          final int celda2 = mapa[nx2][ny2];
+          if (celda1 == 0) {
+            final int nx2 = kx + dx[direccion] * 2;
+            final int ny2 = ky + dy[direccion] * 2;
+            final int celda2 = mapa[nx2][ny2];
 
-          if (celda2 == 1 || celda2 == 2) {
-            nx = nx2;
-            ny = ny2;
+            if (celda2 == 1 || celda2 == 2) {
+              nx = nx2;
+              ny = ny2;
+            } else {
+              colision = true;
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('💥 Karel chocó en paso ${paso + 1}'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                ));
+              }
+              paso=code.length;
+              break;
+            }
           } else {
             colision = true;
             if (mounted) {
@@ -354,49 +375,45 @@ class _LevelScreenState extends State<LevelScreen>
                 behavior: SnackBarBehavior.floating,
               ));
             }
-            break;
-          }
-        } else {
-          colision = true;
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('💥 Karel chocó en paso ${paso + 1}'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ));
-          }
-          break;
-        }
-        kx = nx;
-        ky = ny;
+              paso=code.length;
+              break;
+            }
+          kx = nx;
+          ky = ny;
 
-        if (bt.isConnected) {
           await bt.send('A');
-          await Future.delayed(const Duration(milliseconds: 700));
-        }
-      } else if (inst == 'I') {
-        direccion = (direccion + 3) % 4;
-        if (bt.isConnected) {
+          await Future.delayed(RobotCommandTiming.advance);
+          
+          break;
+
+        case 'I':
+          direccion = (direccion + 3) % 4;
           await bt.send('I');
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-      } else if (inst == 'D') {
-        direccion = (direccion + 1) % 4;
-        if (bt.isConnected) {
+          await Future.delayed(RobotCommandTiming.turnLeft);
+          
+          break;
+
+        case 'D':
+          direccion = (direccion + 1) % 4;
           await bt.send('D');
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-      } else if (inst == 'S') {
-        if (mapa[kx][ky] == 2) {
-          mapa[kx][ky] = 1;
-          zRecogidos++;
-          direccionAlRecoger = direccion;
-          if (bt.isConnected) {
-            await bt.send('S');
-            await Future.delayed(const Duration(milliseconds: 150));
+          await Future.delayed(RobotCommandTiming.turnRight);
+          break;
+        case 'S':
+          await bt.send('S');
+          if (mapa[kx][ky] >= 2) {
+            mapa[kx][ky]--;
+            zRecogidos++;
+          }else if (mounted) {
+            debugPrint('Sensor: Ningun zumbador en ($kx, $ky)');
           }
-        }
-      }
+          else{
+            --zRecogidos;
+          }  
+          await Future.delayed(RobotCommandTiming.sensor);
+          break;
+
+      } 
+
     }
 
     if (!mounted) return;

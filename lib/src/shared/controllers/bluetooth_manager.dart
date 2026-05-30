@@ -35,17 +35,23 @@ class BluetoothManager extends ChangeNotifier {
   Future<void> disconnect() async {
     try {
       await _bluetooth.disconnect();
-    } catch (_) {}
+      debugPrint('BluetoothManager: Successfully disconnected');
+    } catch (e) {
+      debugPrint('BluetoothManager.disconnect error: $e');
+    }
     _isConnected = false;
     _connectedAddress = null;
     _connectedName = null;
     notifyListeners();
   }
-
   Future<void> send(String data) async {
-    if (!_isConnected) return;
+    if (!_isConnected) {
+      debugPrint('BluetoothManager.send(): not connected, unsending copmmand: $data');
+      return;
+    }
     try {
       await _bluetooth.sendString(data);
+      debugPrint('BluetoothManager.send(): Sent "$data"');
     } catch (e) {
       debugPrint('BluetoothManager.send error: $e');
       _isConnected = false;

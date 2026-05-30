@@ -7,13 +7,16 @@ import 'src/shared/providers/progress_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await ProgressManager().load();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: BluetoothManager()),
-        ChangeNotifierProvider.value(value: ProgressManager()),
+        ChangeNotifierProvider(
+          create: (_) => BluetoothManager(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ProgressManager(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -32,3 +35,8 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+
+
+

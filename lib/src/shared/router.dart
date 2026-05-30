@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/features.dart';
 import '../shared/providers/providers.dart';
-import '../shared/providers/progress_manager.dart';
 
 class AppRouteDestination {
   const AppRouteDestination({
@@ -45,22 +44,25 @@ String? _levelIdFromPath(String path) {
 }
 
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   redirect: (context, state) {
     final levelId = _levelIdFromPath(state.matchedLocation);
     if (levelId != null) {
       final progress = ProgressManager();
       if (!progress.isUnlocked(levelId)) {
-        // Nivel bloqueado → redirige a la pantalla de niveles
         return '/levelView';
       }
     }
-    return null; // sin redirección
+    return null;
   },
   routes: [
     GoRoute(
       path: '/',
       builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path:'/splash',
+      builder: (context , state) => const SplashScreen(),
     ),
     GoRoute(
       path: '/settings',

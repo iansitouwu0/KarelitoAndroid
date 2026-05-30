@@ -22,6 +22,14 @@ class Levels {
       ['i','1','0','1','0','1','i'],
       ['i','i','i','i','i','i','i'],
     ],
+    availableBlocks: [
+      ToolboxBlockConfig(name: 'Avanzar', code: 'A'),
+      ToolboxBlockConfig(name: 'Giro Izq.', code: 'I'),
+      ToolboxBlockConfig(name: 'Sensor', code: 'S'),
+      ToolboxBlockConfig(name: 'Repetir', isLoop: true),
+      ToolboxBlockConfig(name: 'Función', isFunction: true),
+
+    ],
   );
 
   static const LevelData level1 = LevelData(
@@ -45,7 +53,13 @@ class Levels {
       ['i','1','0','1','0','1','i'],
       ['i','i','i','i','i','i','i'],
     ],
-   
+    availableBlocks: [
+      ToolboxBlockConfig(name: 'Avanzar', code: 'A'),
+      ToolboxBlockConfig(name: 'Giro Izq.', code: 'I'),
+      ToolboxBlockConfig(name: 'Sensor', code: 'S'),
+      ToolboxBlockConfig(name: 'Repetir', isLoop: true),
+      ToolboxBlockConfig(name: 'Función', isFunction: true),
+    ],
   );
 
   static const LevelData level2 = LevelData(
@@ -69,6 +83,13 @@ class Levels {
       ['i','0','i','i','i','0','i'],
       ['i','1','i','2','0','1','i'],
       ['i','i','i','i','i','i','i'],
+    ],
+    availableBlocks: [
+      ToolboxBlockConfig(name: 'Avanzar', code: 'A'),
+      ToolboxBlockConfig(name: 'Giro Izq.', code: 'I'),
+      ToolboxBlockConfig(name: 'Sensor', code: 'S'),
+      ToolboxBlockConfig(name: 'Repetir', isLoop: true),
+      ToolboxBlockConfig(name: 'Función', isFunction: true),
     ],
   );
 

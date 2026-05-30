@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/providers/providers.dart';
-import '../../../shared/providers/progress_manager.dart';
 import '../../../shared/views/views.dart';
 import '../../../shared/controllers/controllers.dart';
 import '../view/niveles_nivel.dart';
