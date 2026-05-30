@@ -124,7 +124,7 @@ class LevelCreateProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // Crear Informacion del Mapa
+    // Create map data
     final mapData = MapData(
       width: _mapWidth,
       height: _mapHeight,
@@ -135,7 +135,7 @@ class LevelCreateProvider extends ChangeNotifier {
       winDirection: _winDirection,
     );
 
-    // Crear Modelo del Nivel
+    // Create level model
     final level = LevelModel(
       id: '', // Will be generated
       creatorId: userId,
@@ -151,13 +151,13 @@ class LevelCreateProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
-    // Guardar a Firestore
+    // Save to Firestore
     final levelId = await LevelService.createLevel(
       creatorId: userId,
       level: level,
     );
 
-    debugPrint('Nivel Creado Exitosamente: $levelId');
+    debugPrint('✅ Level created successfully: $levelId');
     return true;
   } catch (e) {
     _error = e.toString();

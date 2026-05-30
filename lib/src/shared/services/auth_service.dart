@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
-
+import '../services/services.dart';
 
 class AuthService {
 
@@ -137,9 +137,9 @@ static Future<UserModel?> signUp({
         'createdAt': Timestamp.fromDate(DateTime.now()),
     });
 
-    debugPrint('Colecciones de Progreso Inicializadas Para el Usuario $userId');
+    PopupService.success('Colecciones de Progreso Inicializadas Para el Usuario $userId');
   } catch (e) {
-    debugPrint('Error Inicializando el Progeso : $e');
+    PopupService.error('Error Inicializando el Progeso : $e');
   }
   }
 }

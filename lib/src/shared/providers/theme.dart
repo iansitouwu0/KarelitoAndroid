@@ -40,7 +40,6 @@ class ThemeProvider extends InheritedWidget {
   final pageTransitionsTheme = const PageTransitionsTheme(
     builders: <TargetPlatform, PageTransitionsBuilder>{
       TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       TargetPlatform.linux: NoAnimationPageTransitionsBuilder(),
       TargetPlatform.macOS: NoAnimationPageTransitionsBuilder(),
       TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),

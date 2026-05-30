@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import '../models/class_model.dart';
+import '../services/services.dart';
+import '../widgets/widgets.dart';
 
 String generateAlphanumeric(int length) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -27,7 +29,7 @@ class ClassService {
 
       // Generate join code only for private classes
       final joinCode = visibility == ClassVisibility.private
-          ? randomAlphaNumeric(6) // 6-character random code
+          ? generateAlphanumeric(6) // 6-character random code
           : null;
 
       // THIS CREATES THE DOCUMENT IN FIRESTORE
@@ -42,14 +44,18 @@ class ClassService {
         'updatedAt': Timestamp.now(),
       });
 
-      debugPrint('✅ Class created: $classId');
+      PopupService.success(
+        'Clase Creada Exitosamente',
+      );
       if (joinCode != null) {
-        debugPrint('📝 Join code: $joinCode');
+        PopupService.success(
+        'Codigo de Acceso: $joinCode',
+      );
       }
 
       return classId;
     } catch (e) {
-      debugPrint('❌ Error creating class: $e');
+      PopupService.error('Fallo al Crear la Clase');
       throw Exception('Failed to create class: $e');
     }
   }
@@ -91,10 +97,12 @@ class ClassService {
       // Create progress document for this student in this class
       await _createClassProgress(studentId, classDoc.id);
 
-      PopupHelpers.showSuccess(context,'✅ Student joined class: ${classDoc.id}');
+      PopupService.success(
+        'El Alumno se Unio a La Clase: ${classDoc.id}',
+      );
       return true;
     } catch (e) {
-      debugPrint('❌ Error joining class: $e');
+      PopupService.error('Error al Unirse a la Clase');
       throw Exception('Failed to join class: $e');
     }
   }
@@ -120,9 +128,10 @@ class ClassService {
         },
       });
 
-      debugPrint('✅ Class progress created for $studentId in $classId');
+      PopupService.success('Progreso Creado Para el Estudiante: $studentId en la Clase $classId');
+
     } catch (e) {
-      debugPrint('⚠️ Error creating class progress: $e');
+      PopupService.error('Error Creando Progreso de Clase: $e');
     }
   }
 
@@ -156,46 +165,7 @@ class ClassService {
     }
   }
 
-  // Join class with code (private classes)
-  static Future<bool> joinClassWithCode({
-    required String code,
-    required String studentId,
-  }) async {
-    try {
-      // Find class with join code
-      final query = await _firestore
-          .collection('classes')
-          .where('joinCode', isEqualTo: code)
-          .limit(1)
-          .get();
-
-      if (query.docs.isEmpty) {
-        throw Exception('Invalid join code');
-      }
-
-      final classDoc = query.docs.first;
-      final classModel = ClassModel.fromFirestore(classDoc);
-
-      // Check if already joined
-      if (classModel.studentIds.contains(studentId)) {
-        throw Exception('Already joined this class');
-      }
-
-      // Add student to class
-      await _firestore
-          .collection('classes')
-          .doc(classDoc.id)
-          .update({
-        'studentIds': FieldValue.arrayUnion([studentId]),
-        'updatedAt': Timestamp.now(),
-      });
-
-      return true;
-    } catch (e) {
-      throw Exception('Failed to join class: $e');
-    }
-  }
-
+  
   // Join public class
   static Future<bool> joinPublicClass({
     required String classId,

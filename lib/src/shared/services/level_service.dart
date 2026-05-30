@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
+import 'package:karelito/src/shared/services/popup_service.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 
@@ -11,23 +11,32 @@ class LevelService {
   static final _storage = FirebaseStorage.instance;
   static const _uuid = Uuid();
 
-  // Create new level
+  /// Create a new level document
   static Future<String> createLevel({
     required String creatorId,
     required LevelModel level,
   }) async {
     try {
+      // Generate unique ID for the level
       final levelId = _uuid.v4();
-      await _firestore.collection('levels').doc(levelId).set({
-        ...level.toFirestore(),
-        'id': levelId,
-      });
+
+      // Convert level to Firestore format
+      final levelData = level.toFirestore();
+      levelData['id'] = levelId; // Include ID in document
+
+      // THIS CREATES THE DOCUMENT IN FIRESTORE
+      await _firestore
+          .collection('levels')
+          .doc(levelId)
+          .set(levelData);
+
+      PopupService.success('Nivel Creado: $levelId');
       return levelId;
     } catch (e) {
+      PopupService.error('Error Creando el Nivel: $e');
       throw Exception('Failed to create level: $e');
     }
   }
-
   // Update level
   static Future<void> updateLevel({
     required String levelId,
@@ -39,9 +48,9 @@ class LevelService {
           .doc(levelId)
           .update(level.toFirestore());
 
-      debugPrint('Nivel Editado: $levelId');
+      PopupService.success('Nivel Editado: $levelId');
     } catch (e) {
-      debugPrint('Error Editando el Nivel: $e');
+      PopupService.error('Error Editando el Nivel: $e');
       throw Exception('Fallo en Editar el Nivel: $e');
     }
   }
