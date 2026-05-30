@@ -1,56 +1,63 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 
+
 class AuthService {
+
   static final _auth = FirebaseAuth.instance;
   static final _firestore = FirebaseFirestore.instance;
 
-  // Get current user
+  // Obtener Usuario 
   static User? get currentUser => _auth.currentUser;
 
-  // Check if user is logged in
+  // Verificar Inicio De Sesion Del Usuario
   static bool get isLoggedIn => currentUser != null;
 
-  // Sign up with email and password
-  static Future<UserModel?> signUp({
-    required String email,
-    required String password,
-    required String username,
-    required UserRole role,
-  }) async {
-    try {
-      // Create auth user
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  //Registarse con Correo y Contraseña
+static Future<UserModel?> signUp({
+  required String email,
+  required String password,
+  required String username,
+  required UserRole role,
+}) async {
+  try {
+    // 1. Crear Usuario de Autenticacion de Firebase
+    final userCredential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      final user = userCredential.user;
-      if (user == null) throw Exception('User creation failed');
+    final user = userCredential.user;
+    if (user == null) throw Exception('Creacion de Usuario Fallida');
 
-      // Create user document in Firestore
-      final userModel = UserModel(
-        id: user.uid,
-        email: email,
-        username: username,
-        role: role,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+    // 2. Modelo de Documento de Usurao en Firebase
+    final userModel = UserModel(
+      id: user.uid,
+      email: email,
+      username: username,
+      role: role,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
 
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(userModel.toFirestore());
+    // ESTO CREA EL DOCUMENTO 
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .set(userModel.toFirestore());
 
-      return userModel;
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
-    }
+    // 3. Inicializare progreso
+    await _initializeUserProgress(user.uid);
+
+    return userModel;
+  } on FirebaseAuthException catch (e) {
+    throw _handleAuthException(e);
   }
+}
 
-  // Sign in with email and password
+  // Iniciar Sesion
   static Future<UserModel?> signIn({
     required String email,
     required String password,
@@ -64,7 +71,7 @@ class AuthService {
       final user = userCredential.user;
       if (user == null) throw Exception('Sign in failed');
 
-      // Get user data from Firestore
+      // Obtener Datos de Usuario desde Firebase
       final doc = await _firestore.collection('users').doc(user.uid).get();
       return UserModel.fromFirestore(doc);
     } on FirebaseAuthException catch (e) {
@@ -72,7 +79,7 @@ class AuthService {
     }
   }
 
-  // Get user data from Firestore
+  // Obtener Datos de Usuario desde Firestore
   static Future<UserModel?> getUserData(String userId) async {
     try {
       final doc = await _firestore.collection('users').doc(userId).get();
@@ -83,7 +90,7 @@ class AuthService {
     }
   }
 
-  // Sign out
+  // Cerrar Sesion
   static Future<void> signOut() async {
     try {
       await _auth.signOut();
@@ -92,21 +99,47 @@ class AuthService {
     }
   }
 
-  // Handle Firebase Auth exceptions
+  // Manejar Excepciones de Autenticacion 
   static String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
-        return 'The password is too weak.';
+        return 'La Contraseña es Debil.';
       case 'email-already-in-use':
-        return 'The email is already in use.';
+        return 'Este Correo Ya Esta En Uso.';
       case 'invalid-email':
-        return 'The email is invalid.';
+        return 'El Email Es Invalido.';
       case 'user-not-found':
-        return 'No user found with this email.';
+        return 'No Existe Usuario con Este Email.';
       case 'wrong-password':
-        return 'Wrong password.';
+        return 'Contraseña Incorrecta.';
       default:
-        return 'An error occurred: ${e.message}';
+        return 'Ocurrio un Error: ${e.message}';
     }
+  }
+
+  static Future<void> _initializeUserProgress(String userId) async {
+  try {
+    // Crear Documento  de Progreso
+    await _firestore
+        .collection('levelProgress')
+        .doc(userId)
+        .set({
+        'userId': userId,
+        'createdAt': Timestamp.fromDate(DateTime.now()),
+    });
+
+    // Crear Clase Vacia de Progreso
+    await _firestore
+        .collection('classProgress')
+        .doc(userId)
+        .set({
+        'userId': userId,
+        'createdAt': Timestamp.fromDate(DateTime.now()),
+    });
+
+    debugPrint('Colecciones de Progreso Inicializadas Para el Usuario $userId');
+  } catch (e) {
+    debugPrint('Error Inicializando el Progeso : $e');
+  }
   }
 }

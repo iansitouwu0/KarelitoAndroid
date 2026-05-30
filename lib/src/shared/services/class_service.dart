@@ -14,7 +14,7 @@ String generateAlphanumeric(int length) {
 class ClassService {
   static final _firestore = FirebaseFirestore.instance;
 
-  // Create new class
+  /// Create a new class
   static Future<String> createClass({
     required String teacherId,
     required String className,
@@ -22,24 +22,107 @@ class ClassService {
     required ClassVisibility visibility,
   }) async {
     try {
+      // Generate unique ID
       final classId = _firestore.collection('classes').doc().id;
-      final joinCode =
-          visibility == ClassVisibility.private ? generateAlphanumeric(6) : null;
 
+      // Generate join code only for private classes
+      final joinCode = visibility == ClassVisibility.private
+          ? randomAlphaNumeric(6) // 6-character random code
+          : null;
+
+      // THIS CREATES THE DOCUMENT IN FIRESTORE
       await _firestore.collection('classes').doc(classId).set({
         'teacherId': teacherId,
         'className': className,
         'description': description,
         'visibility': visibility.name,
         'joinCode': joinCode,
-        'studentIds': [],
+        'studentIds': [], // Empty initially
         'createdAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });
 
+      debugPrint('✅ Class created: $classId');
+      if (joinCode != null) {
+        debugPrint('📝 Join code: $joinCode');
+      }
+
       return classId;
     } catch (e) {
+      debugPrint('❌ Error creating class: $e');
       throw Exception('Failed to create class: $e');
+    }
+  }
+
+  /// Student joins a class with code (private)
+  static Future<bool> joinClassWithCode({
+    required String code,
+    required String studentId,
+  }) async {
+    try {
+      // Find class with this join code
+      final query = await _firestore
+          .collection('classes')
+          .where('joinCode', isEqualTo: code)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('Invalid join code');
+      }
+
+      final classDoc = query.docs.first;
+      final classModel = ClassModel.fromFirestore(classDoc);
+
+      // Check if already joined
+      if (classModel.studentIds.contains(studentId)) {
+        throw Exception('Already joined this class');
+      }
+
+      // Add student to class
+      await _firestore
+          .collection('classes')
+          .doc(classDoc.id)
+          .update({
+        'studentIds': FieldValue.arrayUnion([studentId]),
+        'updatedAt': Timestamp.now(),
+      });
+
+      // Create progress document for this student in this class
+      await _createClassProgress(studentId, classDoc.id);
+
+      PopupHelpers.showSuccess(context,'✅ Student joined class: ${classDoc.id}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error joining class: $e');
+      throw Exception('Failed to join class: $e');
+    }
+  }
+
+  /// Create class progress document for student
+  static Future<void> _createClassProgress(
+    String studentId,
+    String classId,
+  ) async {
+    try {
+      await _firestore
+          .collection('classProgress')
+          .doc(studentId)
+          .collection(classId)
+          .doc('_metadata')
+          .set({
+        'joinedAt': Timestamp.now(),
+        'completedHomeworks': [],
+        'globalProgress': {
+          'homeworksCompleted': 0,
+          'averageStars': 0.0,
+          'lastUpdated': Timestamp.now(),
+        },
+      });
+
+      debugPrint('✅ Class progress created for $studentId in $classId');
+    } catch (e) {
+      debugPrint('⚠️ Error creating class progress: $e');
     }
   }
 

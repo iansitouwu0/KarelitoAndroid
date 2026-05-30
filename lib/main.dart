@@ -5,16 +5,19 @@ import 'src/shared/controllers/controllers.dart';
 import 'src/shared/providers/providers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import './src/shared/services/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
+  // Inicializar Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await FirebaseInitService.initializeFirebase();
   
-  // Initialize ProgressManager
+  // Inicializar Gestor de Progreso 
   await ProgressManager().load();
 
   runApp(

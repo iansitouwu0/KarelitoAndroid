@@ -4,3 +4,7 @@ export 'principal/principal.dart';
 export 'nivel/nivel.dart';
 export 'splash/splash.dart';
 export 'auth/auth.dart';
+export 'profile/profile.dart';
+export 'level/level.dart';
+export 'class/class.dart';
+export 'homework/homework.dart';

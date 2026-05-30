@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 
@@ -33,15 +34,19 @@ class LevelService {
     required LevelModel level,
   }) async {
     try {
-      await _firestore.collection('levels').doc(levelId).update(
-        level.toFirestore(),
-      );
+      await _firestore
+          .collection('levels')
+          .doc(levelId)
+          .update(level.toFirestore());
+
+      debugPrint('Nivel Editado: $levelId');
     } catch (e) {
-      throw Exception('Failed to update level: $e');
+      debugPrint('Error Editando el Nivel: $e');
+      throw Exception('Fallo en Editar el Nivel: $e');
     }
   }
 
-  // Get level by ID
+  // Obtener Nivel Por ID
   static Future<LevelModel?> getLevelById(String levelId) async {
     try {
       final doc = await _firestore.collection('levels').doc(levelId).get();
@@ -52,7 +57,7 @@ class LevelService {
     }
   }
 
-  // Get user's levels
+  // Obtener Niveles de Usuarios
   static Future<List<LevelModel>> getUserLevels(String userId) async {
     try {
       final query = await _firestore
@@ -69,7 +74,7 @@ class LevelService {
     }
   }
 
-  // Get public levels
+  // Obtener Niveles Publicos
   static Future<List<LevelModel>> getPublicLevels({
     int limit = 20,
     DocumentSnapshot? startAfter,
@@ -92,7 +97,7 @@ class LevelService {
     }
   }
 
-  // Upload level image
+  // Subir Imagen del Nivel
   static Future<String> uploadLevelImage({
     required String levelId,
     required String imagePath,
@@ -106,13 +111,13 @@ class LevelService {
     }
   }
 
-  // Delete level
+  // Borrar Nivel
   static Future<void> deleteLevel({
     required String levelId,
     required String creatorId,
   }) async {
     try {
-      // Verify ownership
+      // Verificar que sea Propio
       final level = await getLevelById(levelId);
       if (level?.creatorId != creatorId) {
         throw Exception('You do not have permission to delete this level');

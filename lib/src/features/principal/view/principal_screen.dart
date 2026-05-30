@@ -104,8 +104,8 @@ class HomeScreen extends StatelessWidget {
 
                 // Available to all users
                 _buildMenuButton(
-                  title: 'Create Level',
-                  description: 'Design your own custom level',
+                  title: 'Crea Nivel',
+                  description: 'Crea Un Nivel Nuevo',
                   icon: Icons.create_rounded,
                   onTap: () => context.go('/level/create'),
                 ),
@@ -114,15 +114,15 @@ class HomeScreen extends StatelessWidget {
                 // Available to teachers
                 if (authProvider.isTeacher) ...[
                   _buildMenuButton(
-                    title: 'Create Class',
-                    description: 'Set up a new class for your students',
+                    title: 'Crear Clase',
+                    description: 'Crea Una Nueva Clase Para Tus Alumnos',
                     icon: Icons.school_rounded,
                     onTap: () => context.go('/class/create'),
                   ),
                   const SizedBox(height: 12),
                   _buildMenuButton(
-                    title: 'My Classes',
-                    description: 'Manage your classes and assignments',
+                    title: 'Mis Clases',
+                    description: 'Controla Tus Clases Y Tareas',
                     icon: Icons.dashboard_rounded,
                     onTap: () => context.go('/teacher/classes'),
                   ),
@@ -132,15 +132,15 @@ class HomeScreen extends StatelessWidget {
                 // Available to students
                 if (authProvider.isStudent) ...[
                   _buildMenuButton(
-                    title: 'Join Class',
-                    description: 'Join a class using teacher code',
+                    title: 'Unirse a Clase',
+                    description: 'Unete a Una Clase Usando El Código de Maestro ',
                     icon: Icons.group_add_rounded,
                     onTap: () => context.go('/student/join-class'),
                   ),
                   const SizedBox(height: 12),
                   _buildMenuButton(
-                    title: 'My Classes',
-                    description: 'View your classes and assignments',
+                    title: 'Mis Clases',
+                    description: 'Ve Tus Clases y Tareas',
                     icon: Icons.assignment_rounded,
                     onTap: () => context.go('/student/classes'),
                   ),
@@ -149,16 +149,16 @@ class HomeScreen extends StatelessWidget {
 
                 // Available to all authenticated users
                 _buildMenuButton(
-                  title: 'Browse Levels',
-                  description: 'Play public levels from community',
+                  title: 'Explorar Niveles',
+                  description: 'Juega Niveles Públicos',
                   icon: Icons.explore_rounded,
                   onTap: () => context.go('/levels'),
                 ),
                 const SizedBox(height: 12),
 
                 _buildMenuButton(
-                  title: 'My Levels',
-                  description: 'View and edit your created levels',
+                  title: 'Mis Niveles',
+                  description: 'Mira y Edita Niveles Que Has Creado',
                   icon: Icons.library_books_rounded,
                   onTap: () => context.go('/my-levels'),
                 ),
