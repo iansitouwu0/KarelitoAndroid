@@ -5,18 +5,20 @@ class AdaptativeScreen extends StatelessWidget {
   final String titleImage;
   final List<Widget> children;
   final double height;
-
+  final AppBar? appbar;
   const AdaptativeScreen({
     super.key,
     required this.children,
     required this.backgroundImage,
     required this.titleImage,
     required this.height,
+    this.appbar,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: appbar,
       body: LayoutBuilder(
         builder: (context, constraints) {
           return Container(

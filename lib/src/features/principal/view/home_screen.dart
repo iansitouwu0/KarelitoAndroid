@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../shared/views/views.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/controllers/controllers.dart';
-import '../../../shared/providers/providers.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -11,12 +10,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final bt = context.watch<BluetoothManager>(); 
-
-    return AdaptativeScreen(
-      appbar:AppBar(
+    final bt = context.watch<BluetoothManager>();
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F1923),
+      appBar: AppBar(
         backgroundColor: const Color(0xFF16213E),
         elevation: 0,
+        title: const Text(
+          'Karelito',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
           Consumer<AuthProvider>(
             builder: (context, authProvider, _) {
@@ -31,12 +34,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      backgroundImage: 'assets/home/homeBg.jpg',
-      titleImage: 'assets/home/homeTitle.png',
-      height: height,
-      children: [
-      
-        Consumer<AuthProvider>(
+      body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           final user = authProvider.currentUser;
           if (user == null) {
@@ -167,54 +165,9 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
-
-        Align(
-          alignment: Alignment.bottomLeft,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  iconSize: height * 0.07,
-                  icon: const Icon(Icons.settings, color: Colors.white),
-                  onPressed: () => context.go('/settings'),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black38,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        bt.isConnected
-                            ? Icons.bluetooth_connected
-                            : Icons.bluetooth_disabled,
-                        color: bt.isConnected ? Colors.greenAccent : Colors.redAccent,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        bt.isConnected ? 'Conectado' : 'Sin conexión',
-                        style: TextStyle(
-                          color: bt.isConnected ? Colors.greenAccent : Colors.redAccent,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
+
   Widget _buildMenuButton({
     required String title,
     required String description,
@@ -278,4 +231,8 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+
+
+  
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/providers/providers.dart';
 
@@ -17,19 +18,25 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    try {
-      // Wait for ProgressManager to load
-      await ProgressManager().load();
-      if (mounted) {
-        context.go('/');
-      }
-    } catch (e) {
-      debugPrint('Initialization error: $e');
-      if (mounted) {
-        context.go('/');
-      }
+  try {
+    await ProgressManager().load();
+    
+    if (mounted) {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loadCurrentUser();
+    }
+
+    if (mounted) {
+      context.go('/home');
+    }
+  } catch (e) {
+    debugPrint('Initialization error: $e');
+    if (mounted) {
+      context.go('/signin');
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

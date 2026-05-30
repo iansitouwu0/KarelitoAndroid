@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../features/features.dart';
 import '../shared/providers/providers.dart';
@@ -33,7 +34,6 @@ const List<AppRouteDestination> destinations = [
   ),
 ];
 
-/// Devuelve el id del nivel a partir de la ruta, o null si no aplica.
 String? _levelIdFromPath(String path) {
   const map = {
     '/levelView/tutorial': 'tutorial',
@@ -46,19 +46,38 @@ String? _levelIdFromPath(String path) {
 final appRouter = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) {
-    final levelId = _levelIdFromPath(state.matchedLocation);
-    if (levelId != null) {
-      final progress = ProgressManager();
-      if (!progress.isUnlocked(levelId)) {
-        return '/levelView';
-      }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isAuth = authProvider.isLoggedIn;
+
+    // Redirect unauthenticated users
+    if (!isAuth &&
+        !state.matchedLocation.startsWith('/signin') &&
+        !state.matchedLocation.startsWith('/signup') &&
+        !state.matchedLocation.startsWith('/splash')) {
+      return '/signin';
     }
+
+    // Redirect authenticated users away from auth screens
+    if (isAuth &&
+        (state.matchedLocation.startsWith('/signin') ||
+            state.matchedLocation.startsWith('/signup'))) {
+      return '/home';
+    }
+
     return null;
   },
   routes: [
     GoRoute(
       path: '/',
       builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/signin',
+      builder: (context, state) => const SignInScreen(),
+    ),
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const SignUpScreen(),
     ),
     GoRoute(
       path:'/splash',
