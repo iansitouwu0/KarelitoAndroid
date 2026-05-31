@@ -25,8 +25,12 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => BluetoothManager()),
         ChangeNotifierProvider(create: (_) => ProgressManager()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),  // NEW
-        ChangeNotifierProvider(create: (_) => UserProvider()),  // NEW
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => LevelProvider()),
+        ChangeNotifierProvider(create: (_) => ClassProvider()),
+        ChangeNotifierProvider(create: (_) => HomeworkProvider()),
+        ChangeNotifierProvider(create: (_) => ProgressProvider()),
       ],
       child: const MyApp(),
     ),

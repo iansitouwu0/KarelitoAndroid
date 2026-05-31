@@ -6,3 +6,7 @@ export './hardcoded.dart';
 export 'auth_provider.dart';
 export 'user_provider.dart';
 export 'level_create_provider.dart';
+export 'class_provider.dart';
+export 'homework_provider.dart';
+export 'level_provider.dart';
+export 'progress_provider.dart';
