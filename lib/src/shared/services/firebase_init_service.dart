@@ -1,11 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../models/user_model.dart';
 import 'package:flutter/foundation.dart';
 
 class FirebaseInitService {
   static final _firestore = FirebaseFirestore.instance;
-  static final _auth = FirebaseAuth.instance;
   static Future<void> initializeFirebase() async {
     try {
       debugPrint('Iniciando Firebase...');

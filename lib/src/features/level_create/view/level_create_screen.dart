@@ -83,16 +83,16 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
                     _buildDifficultyPage(provider),
                     _buildPreviewPage(provider),
                     MapBuilder(
-                      width: 4,
-                      height: 4,
-                      initialData: mapData,
+                      width: 7, // Your grid width
+                      height: 7, // Your grid height
+                      initialData: mapData, // The matrix (0, 1, 2, i only)
                       onMapChanged: (newMap) {
                         setState(() => mapData = newMap);
                       },
-                      startRow: mapStartRow,
-                      startCol: mapStartCol,
-                      winRow: mapWinRow,
-                      winCol: mapWinCol,
+                      startRow: mapStartRow, // Separate variable
+                      startCol: mapStartCol, // Separate variable
+                      winRow: mapWinRow, // Separate variable
+                      winCol: mapWinCol, // Separate variable
                       onStartChanged: (row, col) {
                         setState(() {
                           mapStartRow = row;

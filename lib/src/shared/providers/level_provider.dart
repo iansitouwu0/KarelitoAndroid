@@ -88,7 +88,6 @@ class LevelProvider extends ChangeNotifier {
       final levelId = await LevelService.createLevel(
         creatorId: userId,
         level: level,
-        imagePath: imagePath,
       );
 
       // Reload user levels
@@ -115,8 +114,7 @@ class LevelProvider extends ChangeNotifier {
 
       await LevelService.updateLevel(
         levelId: levelId,
-        updatedLevel: updatedLevel,
-        imagePath: imagePath,
+        level: updatedLevel,
       );
 
       _currentLevel = updatedLevel;

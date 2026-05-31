@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import '../models/class_model.dart';
 import '../services/services.dart';
-import '../widgets/widgets.dart';
 
 String generateAlphanumeric(int length) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -227,13 +226,64 @@ class ClassService {
       throw Exception('Failed to update class: $e');
     }
   }
-
-  // Delete class
-  static Future<void> deleteClass(String classId) async {
-    try {
-      await _firestore.collection('classes').doc(classId).delete();
-    } catch (e) {
-      throw Exception('Failed to delete class: $e');
-    }
+static Future<List<ClassModel>> getPublicClasses() async {
+  try {
+    final snapshot = await _firestore
+        .collection('classes')
+        .where('visibility', isEqualTo: 'public')
+        .get();
+ 
+    return snapshot.docs
+        .map((doc) => ClassModel.fromFirestore(doc))
+        .toList();
+  } catch (e) {
+    PopupService.error('❌ Error getting public classes: $e');
+    throw Exception('Failed to get public classes: $e');
   }
+}
+ 
+/// Student leaves a class
+static Future<void> leaveClass({
+  required String classId,
+  required String studentId,
+}) async {
+  try {
+    await _firestore.collection('classes').doc(classId).update({
+      'studentIds': FieldValue.arrayRemove([studentId]),
+    });
+ 
+    PopupService.success('✅ Student left class: $classId');
+  } catch (e) {
+    PopupService.error('❌ Error leaving class: $e');
+    throw Exception('Failed to leave class: $e');
+  }
+}
+ 
+
+ 
+/// Delete a class (teacher only)
+static Future<void> deleteClass({
+  required String classId,
+  required String teacherId,
+}) async {
+  try {
+    // Verify ownership
+    final doc = await _firestore.collection('classes').doc(classId).get();
+    if (!doc.exists) {
+      throw Exception('Class not found');
+    }
+ 
+    final classData = ClassModel.fromFirestore(doc);
+    if (classData.teacherId != teacherId) {
+      throw Exception('You do not have permission to delete this class');
+    }
+ 
+    // Delete class
+    await _firestore.collection('classes').doc(classId).delete();
+    PopupService.success('✅ Class deleted: $classId');
+  } catch (e) {
+    PopupService.error('❌ Error deleting class: $e');
+    throw Exception('Failed to delete class: $e');
+  }
+}
 }

@@ -90,7 +90,7 @@ class HomeworkProvider extends ChangeNotifier {
       final homeworkId = await HomeworkService.createHomework(
         classId: classId,
         levelId: levelId,
-        assignedBy: teacherId,
+        teacherId: teacherId,
         dueDate: dueDate,
         description: description,
       );

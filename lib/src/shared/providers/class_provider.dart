@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 import '../services/services.dart';
-
+/// Provider for managing class state across the app
 /// Provider for managing class state across the app
 class ClassProvider extends ChangeNotifier {
   List<ClassModel> _teacherClasses = [];
@@ -10,7 +10,7 @@ class ClassProvider extends ChangeNotifier {
   ClassModel? _currentClass;
   bool _isLoading = false;
   String? _error;
-
+ 
   // Getters
   List<ClassModel> get teacherClasses => _teacherClasses;
   List<ClassModel> get studentClasses => _studentClasses;
@@ -18,14 +18,14 @@ class ClassProvider extends ChangeNotifier {
   ClassModel? get currentClass => _currentClass;
   bool get isLoading => _isLoading;
   String? get error => _error;
-
+ 
   /// Load classes for teacher
   Future<bool> loadTeacherClasses(String teacherId) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       _teacherClasses = await ClassService.getTeacherClasses(teacherId);
       _isLoading = false;
       notifyListeners();
@@ -37,14 +37,14 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Load classes for student
   Future<bool> loadStudentClasses(String studentId) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       _studentClasses = await ClassService.getStudentClasses(studentId);
       _isLoading = false;
       notifyListeners();
@@ -56,14 +56,14 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Load public classes
   Future<bool> loadPublicClasses() async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       _publicClasses = await ClassService.getPublicClasses();
       _isLoading = false;
       notifyListeners();
@@ -75,14 +75,14 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Get a specific class by ID
   Future<bool> getClassById(String classId) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       _currentClass = await ClassService.getClassById(classId);
       _isLoading = false;
       notifyListeners();
@@ -94,7 +94,7 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Create a new class
   Future<String?> createClass({
     required String teacherId,
@@ -106,14 +106,14 @@ class ClassProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       final classId = await ClassService.createClass(
         teacherId: teacherId,
         className: className,
         description: description,
         visibility: visibility,
       );
-
+ 
       // Reload teacher classes
       await loadTeacherClasses(teacherId);
       return classId;
@@ -124,7 +124,7 @@ class ClassProvider extends ChangeNotifier {
       return null;
     }
   }
-
+ 
   /// Join a class with code (student)
   Future<bool> joinClassWithCode({
     required String code,
@@ -134,12 +134,12 @@ class ClassProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       await ClassService.joinClassWithCode(
         code: code,
         studentId: studentId,
       );
-
+ 
       // Reload student classes
       await loadStudentClasses(studentId);
       _isLoading = false;
@@ -152,7 +152,7 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Join a public class (student)
   Future<bool> joinPublicClass({
     required String classId,
@@ -162,12 +162,12 @@ class ClassProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       await ClassService.joinPublicClass(
         classId: classId,
         studentId: studentId,
       );
-
+ 
       // Reload student classes
       await loadStudentClasses(studentId);
       _isLoading = false;
@@ -180,7 +180,7 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Leave a class (student)
   Future<bool> leaveClass({
     required String classId,
@@ -190,17 +190,17 @@ class ClassProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       await ClassService.leaveClass(
         classId: classId,
         studentId: studentId,
       );
-
+ 
       _studentClasses.removeWhere((c) => c.id == classId);
       if (_currentClass?.id == classId) {
         _currentClass = null;
       }
-
+ 
       _isLoading = false;
       notifyListeners();
       return true;
@@ -211,7 +211,7 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Delete a class (teacher only)
   Future<bool> deleteClass({
     required String classId,
@@ -221,17 +221,17 @@ class ClassProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
+ 
       await ClassService.deleteClass(
         classId: classId,
         teacherId: teacherId,
       );
-
+ 
       _teacherClasses.removeWhere((c) => c.id == classId);
       if (_currentClass?.id == classId) {
         _currentClass = null;
       }
-
+ 
       _isLoading = false;
       notifyListeners();
       return true;
@@ -242,13 +242,13 @@ class ClassProvider extends ChangeNotifier {
       return false;
     }
   }
-
+ 
   /// Clear current class
   void clearCurrentClass() {
     _currentClass = null;
     notifyListeners();
   }
-
+ 
   /// Clear error
   void clearError() {
     _error = null;
