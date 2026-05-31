@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../shared/models/models.dart';
-import '../../shared/services/services.dart';
+import 'package:karelito/src/shared/models/models.dart';
+import 'package:karelito/src/shared/services/services.dart';
+import 'package:karelito/src/shared/widgets/widgets.dart';
 
 class LevelCreateProvider extends ChangeNotifier {
   String _title = '';
@@ -119,8 +120,20 @@ class LevelCreateProvider extends ChangeNotifier {
   }
 
   // Crear Nivel 
-  Future<bool> createLevel({required String userId}) async {
+  Future<bool> createLevel({
+    required String userId,
+    required BuildContext context,
+  }) async {
+    if (_title.isEmpty) {
+    PopupHelpers.showError(context, message: 'Title cannot be empty');
+    return false;
+  }
+  if (_description.isEmpty) {
+    PopupHelpers.showError(context, message: 'Description cannot be empty');
+    return false;
+  }
   try {
+    PopupHelpers.showLoading(context, message: 'Creating level...');
     _isLoading = true;
     notifyListeners();
 
@@ -157,7 +170,7 @@ class LevelCreateProvider extends ChangeNotifier {
       level: level,
     );
 
-    debugPrint('✅ Level created successfully: $levelId');
+    PopupHelpers.showSuccess(context, message:'Nivel Creado Exitosamente: $levelId');
     return true;
   } catch (e) {
     _error = e.toString();

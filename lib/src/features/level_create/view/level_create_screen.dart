@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/models/level_model.dart';
 import '../../../shared/providers/providers.dart';
+import 'package:karelito/src/shared/widgets/widgets.dart';
 
 class LevelCreateScreen extends StatefulWidget {
   const LevelCreateScreen({super.key});
@@ -15,16 +16,33 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
   late PageController _pageController;
   int _currentPage = 0;
 
+  late List<List<String>> mapData;
+  int mapStartRow = 1;
+  int mapStartCol = 1;
+  int mapWinRow = 1;
+  int mapWinCol = 5;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    mapData = _createDefaultMap();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  List<List<String>> _createDefaultMap() {
+    return List.generate(
+      7,
+      (i) => List.generate(7, (j) {
+        if (i == 0 || i == 6 || j == 0 || j == 6) return 'i';
+        return '0';
+      }),
+    );
   }
 
   @override
@@ -64,6 +82,30 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
                     _buildMapDesignerPage(provider),
                     _buildDifficultyPage(provider),
                     _buildPreviewPage(provider),
+                    MapBuilder(
+                      width: 4,
+                      height: 4,
+                      initialData: mapData,
+                      onMapChanged: (newMap) {
+                        setState(() => mapData = newMap);
+                      },
+                      startRow: mapStartRow,
+                      startCol: mapStartCol,
+                      winRow: mapWinRow,
+                      winCol: mapWinCol,
+                      onStartChanged: (row, col) {
+                        setState(() {
+                          mapStartRow = row;
+                          mapStartCol = col;
+                        });
+                      },
+                      onWinChanged: (row, col) {
+                        setState(() {
+                          mapWinRow = row;
+                          mapWinCol = col;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -76,9 +118,9 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
                     ElevatedButton.icon(
                       onPressed: _currentPage > 0
                           ? () => _pageController.previousPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              )
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            )
                           : null,
                       icon: const Icon(Icons.arrow_back),
                       label: const Text('Back'),
@@ -89,9 +131,9 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
                     ElevatedButton.icon(
                       onPressed: _currentPage < 3
                           ? () => _pageController.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              )
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            )
                           : () => _submitLevel(context, provider),
                       icon: Icon(
                         _currentPage < 3 ? Icons.arrow_forward : Icons.check,
@@ -135,18 +177,11 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                [
-                  'Basic Info',
-                  'Map Design',
-                  'Difficulty',
-                  'Preview',
-                ][index],
+                ['Basic Info', 'Map Design', 'Difficulty', 'Preview'][index],
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
-                  color: _currentPage >= index
-                      ? Colors.white
-                      : Colors.white38,
+                  color: _currentPage >= index ? Colors.white : Colors.white38,
                 ),
               ),
             ],
@@ -537,7 +572,10 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
                     : null,
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.cyan.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -580,10 +618,19 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
           _buildPreviewField('Title', provider.title),
           _buildPreviewField('Description', provider.description),
           _buildPreviewField('Difficulty', provider.difficulty.name),
-          _buildPreviewField('Map Size', '${provider.mapWidth}x${provider.mapHeight}'),
+          _buildPreviewField(
+            'Map Size',
+            '${provider.mapWidth}x${provider.mapHeight}',
+          ),
           _buildPreviewField('Visibility', provider.visibility.name),
-          _buildPreviewField('3-Star Max Blocks', '${provider.threeStarMaxBlocks}'),
-          _buildPreviewField('2-Star Max Blocks', '${provider.twoStarMaxBlocks}'),
+          _buildPreviewField(
+            '3-Star Max Blocks',
+            '${provider.threeStarMaxBlocks}',
+          ),
+          _buildPreviewField(
+            '2-Star Max Blocks',
+            '${provider.twoStarMaxBlocks}',
+          ),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(12),
@@ -649,7 +696,10 @@ class _LevelCreateScreenState extends State<LevelCreateScreen> {
 
     if (user == null) return;
 
-    final success = await provider.createLevel(userId: user.id);
+    final success = await provider.createLevel(
+      userId: user.id,
+      context: context,
+    );
 
     if (mounted) {
       if (success) {

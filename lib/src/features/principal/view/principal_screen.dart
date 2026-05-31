@@ -101,6 +101,15 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+             
+
+                _buildMenuButton(
+                  title: 'Explorar Niveles',
+                  description: 'Juega Niveles Publicos',
+                  icon: Icons.explore_rounded,
+                  onTap: () => context.push('/browse-levels'),
+                ),
+                const SizedBox(height: 12),
 
                 // Available to all users
                 _buildMenuButton(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/providers/auth_provider.dart';
+import 'package:karelito/src/shared/widgets/widgets.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -31,15 +32,11 @@ class _SignInScreenState extends State<SignInScreen> {
     );
 
     if (mounted) {
+      PopupHelpers.showSuccess(context, message: 'Inicio de Sesion Exitoso');
       if (success) {
         context.go('/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error ?? 'Sign in failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        PopupHelpers.showError(context, message: authProvider.error ?? 'Inicio de Sesion Fallido');
       }
     }
   }
