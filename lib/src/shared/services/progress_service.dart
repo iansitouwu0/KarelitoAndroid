@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:karelito/src/shared/services/popup_service.dart';
-
+import 'package:flutter/foundation.dart';
 import '../models/progress_models.dart';
+import 'popup_service.dart';
 
 class ProgressService {
   static final _firestore = FirebaseFirestore.instance;
 
-  /// Get user's level progress
+  /// Get level progress for a specific level - RETURNS NULL IF NOT FOUND
   static Future<LevelProgressModel?> getLevelProgress({
     required String userId,
     required String levelId,
@@ -23,6 +23,7 @@ class ProgressService {
 
       return LevelProgressModel.fromFirestore(doc);
     } catch (e) {
+      debugPrint('❌ Error getting level progress: $e');
       PopupService.error('Error Obteniendo el Progreso del Nivel : $e');
       return null;
     }
@@ -30,10 +31,9 @@ class ProgressService {
 
   /// Get all level progress for a user
   static Future<List<LevelProgressModel>> getAllLevelProgress(
-    String userId,
-  ) async {
+      String userId) async {
     try {
-      final snapshot = await FirebaseFirestore.instance
+      final snapshot = await _firestore
           .collection('levelProgress')
           .doc(userId)
           .collection('levels')
@@ -43,18 +43,57 @@ class ProgressService {
           .map((doc) => LevelProgressModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      PopupService.error('❌ Error getting all level progress: $e');
-      throw Exception('Failed to get all level progress: $e');
+      debugPrint('❌ Error getting all level progress: $e');
+      PopupService.error('Error Obteniendo Todo el Progreso: $e');
+      return [];
     }
   }
 
-  /// Get class progress for a student
+  /// Save or update level progress
+  static Future<void> saveLevelProgress({
+    required String userId,
+    required String levelId,
+    required int stars,
+    required bool isCompleted,
+    required int attempts,
+    String? bestSolution,
+  }) async {
+    try {
+      final progress = LevelProgressModel(
+        userId: userId,
+        levelId: levelId,
+        stars: stars,
+        isCompleted: isCompleted,
+        attempts: attempts,
+        bestSolution: bestSolution,
+        lastAttempted: DateTime.now(),
+        completedAt: isCompleted ? DateTime.now() : null,
+      );
+
+      await _firestore
+          .collection('levelProgress')
+          .doc(userId)
+          .collection('levels')
+          .doc(levelId)
+          .set(progress.toFirestore());
+
+      debugPrint('✅ Level progress saved: $levelId');
+      PopupService.success(
+          'Progreso Guardado, Nivel: $levelId Para el Usuario: $userId');
+    } catch (e) {
+      debugPrint('❌ Error saving level progress: $e');
+      PopupService.error('Error al Guardar Progreso: $e');
+      throw Exception('Failed to save level progress: $e');
+    }
+  }
+
+  /// Get class progress for a student - RETURNS NULL IF NOT FOUND
   static Future<ClassProgressModel?> getClassProgress({
     required String userId,
     required String classId,
   }) async {
     try {
-      final doc = await FirebaseFirestore.instance
+      final doc = await _firestore
           .collection('classProgress')
           .doc(userId)
           .collection('classes')
@@ -62,19 +101,20 @@ class ProgressService {
           .get();
 
       if (!doc.exists) return null;
+
       return ClassProgressModel.fromFirestore(doc);
     } catch (e) {
-      PopupService.error('❌ Error getting class progress: $e');
-      throw Exception('Failed to get class progress: $e');
+      debugPrint('❌ Error getting class progress: $e');
+      PopupService.error('Error Obteniendo Progreso de Clase: $e');
+      return null;
     }
   }
 
   /// Get all class progress for a student
   static Future<List<ClassProgressModel>> getAllClassProgress(
-    String userId,
-  ) async {
+      String userId) async {
     try {
-      final snapshot = await FirebaseFirestore.instance
+      final snapshot = await _firestore
           .collection('classProgress')
           .doc(userId)
           .collection('classes')
@@ -84,8 +124,9 @@ class ProgressService {
           .map((doc) => ClassProgressModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      PopupService.error('❌ Error getting all class progress: $e');
-      throw Exception('Failed to get all class progress: $e');
+      debugPrint('❌ Error getting all class progress: $e');
+      PopupService.error('Error Obteniendo Progreso de Clases: $e');
+      return [];
     }
   }
 
@@ -111,52 +152,20 @@ class ProgressService {
         globalProgress: globalProgress,
       );
 
-      await FirebaseFirestore.instance
+      await _firestore
           .collection('classProgress')
           .doc(userId)
           .collection('classes')
           .doc(classId)
           .set(classProgress.toFirestore());
 
-      PopupService.success('✅ Class progress saved for user: $userId');
+      debugPrint('✅ Class progress saved for user: $userId');
+      PopupService.success(
+          'Progreso de Clase Guardado para Usuario: $userId');
     } catch (e) {
-      PopupService.error('❌ Error saving class progress: $e');
+      debugPrint('❌ Error saving class progress: $e');
+      PopupService.error('Error al Guardar Progreso de Clase: $e');
       throw Exception('Failed to save class progress: $e');
-    }
-  }
-
-  /// Save or update level progress
-  static Future<void> saveLevelProgress({
-    required String userId,
-    required String levelId,
-    required int stars,
-    required bool isCompleted,
-    required int attempts,
-    String? bestSolution,
-  }) async {
-    try {
-      final progress = LevelProgressModel(
-        userId: userId,
-        levelId: levelId,
-        stars: stars,
-        isCompleted: isCompleted,
-        attempts: attempts,
-        bestSolution: bestSolution,
-        lastAttempted: DateTime.now(),
-        completedAt: isCompleted ? DateTime.now() : null,
-      );
-
-      await FirebaseFirestore.instance
-          .collection('levelProgress')
-          .doc(userId)
-          .collection('levels')
-          .doc(levelId)
-          .set(progress.toFirestore());
-
-      PopupService.success('✅ Level progress saved: $levelId');
-    } catch (e) {
-      PopupService.error('❌ Error saving level progress: $e');
-      throw Exception('Failed to save level progress: $e');
     }
   }
 }

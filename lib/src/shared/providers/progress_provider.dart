@@ -38,12 +38,12 @@ class ProgressProvider extends ChangeNotifier {
         levelId: levelId,
       );
 
-      // Handle nullable return - if null, create default
+      // Handle nullable return
       if (progress != null) {
         _levelProgress[levelId] = progress;
       } else {
-        // Create default progress if none exists
-        _levelProgress[levelId] = LevelProgressModel(
+        // Create default progress if doesn't exist
+        final defaultProgress = LevelProgressModel(
           userId: userId,
           levelId: levelId,
           stars: 0,
@@ -53,6 +53,7 @@ class ProgressProvider extends ChangeNotifier {
           lastAttempted: DateTime.now(),
           completedAt: null,
         );
+        _levelProgress[levelId] = defaultProgress;
       }
 
       _isLoading = false;
@@ -103,6 +104,7 @@ class ProgressProvider extends ChangeNotifier {
         classId: classId,
       );
 
+      // Handle nullable return
       if (progress != null) {
         _classProgress[classId] = progress;
       }
