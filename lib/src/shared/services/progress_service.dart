@@ -7,7 +7,7 @@ class ProgressService {
   static final _firestore = FirebaseFirestore.instance;
 
   /// Get user's level progress
-  static Future<Map<String, dynamic>?> getLevelProgress({
+  static Future<LevelProgressModel?> getLevelProgress({
     required String userId,
     required String levelId,
   }) async {
@@ -21,7 +21,7 @@ class ProgressService {
 
       if (!doc.exists) return null;
 
-      return doc.data();
+      return LevelProgressModel.fromFirestore(doc);
     } catch (e) {
       PopupService.error('Error Obteniendo el Progreso del Nivel : $e');
       return null;

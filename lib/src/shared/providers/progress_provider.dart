@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
+import '../models/progress_models.dart';
 import '../services/services.dart';
 
 /// Provider for managing user progress across the app
@@ -37,7 +38,23 @@ class ProgressProvider extends ChangeNotifier {
         levelId: levelId,
       );
 
-      _levelProgress[levelId] = progress;
+      // Handle nullable return - if null, create default
+      if (progress != null) {
+        _levelProgress[levelId] = progress;
+      } else {
+        // Create default progress if none exists
+        _levelProgress[levelId] = LevelProgressModel(
+          userId: userId,
+          levelId: levelId,
+          stars: 0,
+          isCompleted: false,
+          attempts: 0,
+          bestSolution: null,
+          lastAttempted: DateTime.now(),
+          completedAt: null,
+        );
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -57,7 +74,7 @@ class ProgressProvider extends ChangeNotifier {
       notifyListeners();
 
       final progressList = await ProgressService.getAllLevelProgress(userId);
-      
+
       _levelProgress.clear();
       for (var progress in progressList) {
         _levelProgress[progress.levelId] = progress;
@@ -86,10 +103,13 @@ class ProgressProvider extends ChangeNotifier {
         classId: classId,
       );
 
-      _classProgress[classId] = progress;
+      if (progress != null) {
+        _classProgress[classId] = progress;
+      }
+
       _isLoading = false;
       notifyListeners();
-      return true;
+      return progress != null;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -106,7 +126,7 @@ class ProgressProvider extends ChangeNotifier {
       notifyListeners();
 
       final progressList = await ProgressService.getAllClassProgress(userId);
-      
+
       _classProgress.clear();
       for (var progress in progressList) {
         _classProgress[progress.classId] = progress;
@@ -182,6 +202,23 @@ class ProgressProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
+      // Create GlobalProgress object
+      final globalProgress = GlobalProgress(
+        homeworksCompleted: completedHomeworks.length,
+        averageStars: averageStars,
+        lastUpdated: DateTime.now(),
+      );
+
+      // Create ClassProgressModel
+      final classProgress = ClassProgressModel(
+        userId: userId,
+        classId: classId,
+        joinedAt: DateTime.now(),
+        completedHomeworks: completedHomeworks,
+        globalProgress: globalProgress,
+      );
+
+      // Save to service
       await ProgressService.saveClassProgress(
         userId: userId,
         classId: classId,
@@ -190,19 +227,7 @@ class ProgressProvider extends ChangeNotifier {
       );
 
       // Update local cache
-      final progress = ClassProgressModel(
-        userId: userId,
-        classId: classId,
-        joinedAt: DateTime.now(),
-        completedHomeworks: completedHomeworks,
-        globalProgress: GlobalProgress(
-          homeworksCompleted: completedHomeworks.length,
-          averageStars: averageStars,
-          lastUpdated: DateTime.now(),
-        ),
-      );
-
-      _classProgress[classId] = progress;
+      _classProgress[classId] = classProgress;
       _isLoading = false;
       notifyListeners();
       return true;
@@ -224,7 +249,7 @@ class ProgressProvider extends ChangeNotifier {
       await loadAllLevelProgress(userId);
       await loadAllClassProgress(userId);
 
-      // Calculate stats
+      // Calculate stats from level progress
       int totalLevels = _levelProgress.length;
       int completedLevels = _levelProgress.values
           .where((p) => p.isCompleted)
@@ -235,10 +260,11 @@ class ProgressProvider extends ChangeNotifier {
                   .fold<int>(0, (sum, p) => sum + p.stars) /
               _levelProgress.length;
 
+      // Calculate stats from class progress
       int totalClasses = _classProgress.length;
-      int completedHomeworks = 0;
+      int totalCompletedHomeworks = 0;
       for (var progress in _classProgress.values) {
-        completedHomeworks += progress.completedHomeworks.length;
+        totalCompletedHomeworks += progress.completedHomeworks.length;
       }
 
       _isLoading = false;
@@ -249,7 +275,7 @@ class ProgressProvider extends ChangeNotifier {
         'completedLevels': completedLevels,
         'averageStars': averageStars,
         'totalClasses': totalClasses,
-        'completedHomeworks': completedHomeworks,
+        'completedHomeworks': totalCompletedHomeworks,
       };
     } catch (e) {
       _error = e.toString();
