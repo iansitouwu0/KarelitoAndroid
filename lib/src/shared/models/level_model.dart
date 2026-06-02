@@ -25,8 +25,8 @@ class MapData extends Equatable {
 
   factory MapData.fromMap(Map<String, dynamic> map) {
     return MapData(
-      width: map['width'] ?? 7,
-      height: map['height'] ?? 7,
+      width: map['width'] ?? 4,
+      height: map['height'] ?? 4,
       data: List<List<String>>.from(
         (map['data'] as List).map(
           (row) => List<String>.from(row as List),

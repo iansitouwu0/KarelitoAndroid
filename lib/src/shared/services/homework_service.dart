@@ -75,7 +75,7 @@ static Future<List<HomeworkModel>> getStudentHomework(String studentId) async {
               .where('classId', isEqualTo: classId)
               .get()),
     );
- 
+    //toma los datosobtenidos desde firestorey los combierte a un objeto de tipo HomeworkModel con el metodo de ek modelo
     final homeworkList = <HomeworkModel>[];
     for (var snapshot in homeworkSnapshots) {
       homeworkList.addAll(
@@ -115,9 +115,9 @@ static Future<void> updateHomework({
       'updatedAt': Timestamp.now(),
     });
  
-    PopupService.success('✅ Homework updated: $homeworkId');
+    PopupService.success('Tarea  Actualizada: $homeworkId');
   } catch (e) {
-    PopupService.error('❌ Error updating homework: $e');
+    PopupService.error('Error Acualizando la Tarea: $e');
     throw Exception('Failed to update homework: $e');
   }
 }
@@ -128,9 +128,9 @@ static Future<void> deleteHomework({
 }) async {
   try {
     await _firestore.collection('homeworks').doc(homeworkId).delete();
-    PopupService.success('✅ Homework deleted: $homeworkId');
+    PopupService.success('Tarea Eliminada: $homeworkId');
   } catch (e) {
-    PopupService.error('❌ Error deleting homework: $e');
+    PopupService.error('Error Eliminando la Tarea: $e');
     throw Exception('Failed to delete homework: $e');
   }
 }
@@ -155,9 +155,9 @@ static Future<void> submitSolution({
           'isCompleted': true,
         });
  
-    PopupService.success('✅ Solution submitted for homework: $homeworkId');
+    PopupService.success('Solucion Enviada: $homeworkId');
   } catch (e) {
-    PopupService.error('❌ Error submitting solution: $e');
+    PopupService.error('Error Enviando Solución: $e');
     throw Exception('Failed to submit solution: $e');
   }
 }
@@ -192,7 +192,7 @@ static Future<bool> getCompletionStatus({
  
     return false;
   } catch (e) {
-    PopupService.error('❌ Error getting completion status: $e');
+    PopupService.error('Error Obteniendo Estatus de Tarea: $e');
     throw Exception('Failed to get completion status: $e');
   }
 }

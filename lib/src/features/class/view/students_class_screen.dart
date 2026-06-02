@@ -30,7 +30,7 @@ class _StudentClassesScreenState extends State<StudentClassesScreen> {
         backgroundColor: const Color(0xFF16213E),
         elevation: 0,
         title: const Text(
-          'My Classes',
+          'Mis Clases',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -56,14 +56,14 @@ class _StudentClassesScreenState extends State<StudentClassesScreen> {
                   Icon(Icons.inbox, size: 48, color: Colors.grey[600]),
                   const SizedBox(height: 16),
                   const Text(
-                    'No classes joined yet',
+                    'No te Has Unido a Ninguna Clase aun',
                     style: TextStyle(color: Colors.white70),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () => context.push('/student/join'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Join Class'),
+                    label: const Text('Unirse A Clase'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.cyan,
                     ),
@@ -140,7 +140,7 @@ class _StudentClassesScreenState extends State<StudentClassesScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
+                  color: Colors.orange,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(

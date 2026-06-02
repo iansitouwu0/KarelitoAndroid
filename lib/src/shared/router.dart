@@ -35,14 +35,7 @@ const List<AppRouteDestination> destinations = [
   ),
 ];
 
-String? _levelIdFromPath(String path) {
-  const map = {
-    '/levelView/tutorial': 'tutorial',
-    '/levelView/nivel_1': 'nivel_1',
-    '/levelView/nivel_2': 'nivel_2',
-  };
-  return map[path];
-}
+
 
 final appRouter = GoRouter(
   initialLocation: '/splash',

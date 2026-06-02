@@ -26,7 +26,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
     final code = _codeController.text.trim();
 
     if (code.isEmpty) {
-      PopupHelpers.showError(context, message: 'Please enter a join code');
+      PopupHelpers.showError(context, message: 'Introduzca el Código de Clase');
       return;
     }
 
@@ -35,7 +35,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
     if (user == null) return;
 
     setState(() => _isLoading = true);
-    PopupHelpers.showLoading(context, message: 'Joining class...');
+    PopupHelpers.showLoading(context, message: 'Uniendose a Clase...');
 
     try {
       await ClassService.joinClassWithCode(
@@ -47,7 +47,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
         PopupHelpers.closeLoading(context);
         PopupHelpers.showSuccess(
           context,
-          message: 'Successfully joined class!',
+          message: 'Te has Unido Exitosamente',
         );
 
         Future.delayed(const Duration(seconds: 1), () {
@@ -76,7 +76,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
         backgroundColor: const Color(0xFF16213E),
         elevation: 0,
         title: const Text(
-          'Join Class',
+          'Unirse a Clase',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -90,7 +90,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Enter Join Code',
+              'Introduce el Codigo de Acceso ',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Ask your teacher for the class code',
+              'Pregunta a Tu Profesor Por el Código de Clase',
               style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 32),
@@ -152,7 +152,7 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
                         ),
                       ),
                     )
-                  : const Text('Join Class'),
+                  : const Text('Unirse a Clase'),
             ),
           ],
         ),

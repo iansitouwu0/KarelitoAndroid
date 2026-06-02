@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../services/services.dart';
 
+
+
 class AuthService {
 
   static final _auth = FirebaseAuth.instance;
@@ -29,7 +31,10 @@ static Future<UserModel?> signUp({
     );
 
     final user = userCredential.user;
-    if (user == null) throw Exception('Creacion de Usuario Fallida');
+    if (user == null) {
+      PopupService.error('Creación de Usuario Fallida. Intentelo Mas Tarde');
+      throw Exception('Creacion de Usuario Fallida');
+    }
 
     // 2. Modelo de Documento de Usurao en Firebase
     final userModel = UserModel(
@@ -52,6 +57,8 @@ static Future<UserModel?> signUp({
 
     return userModel;
   } on FirebaseAuthException catch (e) {
+    
+    PopupService.info(_handleAuthException(e));
     throw _handleAuthException(e);
   }
 }
@@ -68,12 +75,17 @@ static Future<UserModel?> signUp({
       );
 
       final user = userCredential.user;
-      if (user == null) throw Exception('Sign in failed');
+      if (user == null) {
+        PopupService.error('Error al Iniciar Sesión');
+        throw Exception('Sign in failed');
+
+      }
 
       // Obtener Datos de Usuario desde Firebase
       final doc = await _firestore.collection('users').doc(user.uid).get();
       return UserModel.fromFirestore(doc);
     } on FirebaseAuthException catch (e) {
+      PopupService.info(_handleAuthException(e));
       throw _handleAuthException(e);
     }
   }

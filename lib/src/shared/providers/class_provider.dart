@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 import '../services/services.dart';
 /// Provider for managing class state across the app
-/// Provider for managing class state across the app
 class ClassProvider extends ChangeNotifier {
   List<ClassModel> _teacherClasses = [];
   List<ClassModel> _studentClasses = [];

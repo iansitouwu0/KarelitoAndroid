@@ -28,12 +28,12 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
 
   Future<void> _handleCreateClass() async {
     if (_classNameController.text.isEmpty) {
-      PopupHelpers.showError(context, message: 'Class name cannot be empty');
+      PopupHelpers.showError(context, message: 'El Nombre de la Clase no Puede Estar Vacio');
       return;
     }
 
     if (_descriptionController.text.isEmpty) {
-      PopupHelpers.showError(context, message: 'Description cannot be empty');
+      PopupHelpers.showError(context, message: 'La Descripción no Puede Estar Vacia');
       return;
     }
 
@@ -42,10 +42,10 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
     if (user == null) return;
 
     setState(() => _isLoading = true);
-    PopupHelpers.showLoading(context, message: 'Creating class...');
+    PopupHelpers.showLoading(context, message: 'Creando Clase...');
 
     try {
-      final classId = await ClassService.createClass(
+      await ClassService.createClass(
         teacherId: user.id,
         className: _classNameController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -56,7 +56,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
         PopupHelpers.closeLoading(context);
         PopupHelpers.showSuccess(
           context,
-          message: 'Class created successfully!',
+          message: 'Clase Creada Exitosamente',
         );
 
         Future.delayed(const Duration(seconds: 1), () {
@@ -85,7 +85,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
         backgroundColor: const Color(0xFF16213E),
         elevation: 0,
         title: const Text(
-          'Create Class',
+          'Crear Clase',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -99,7 +99,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Class Name',
+              'Nombre de la Clase',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -110,7 +110,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
             TextField(
               controller: _classNameController,
               decoration: InputDecoration(
-                hintText: 'e.g., Computer Science 101',
+                hintText: 'ejemplo, 2AME Clase',
                 hintStyle: const TextStyle(color: Colors.white54),
                 prefixIcon: const Icon(Icons.school, color: Colors.cyan),
                 border: OutlineInputBorder(
@@ -126,7 +126,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
             const SizedBox(height: 24),
 
             const Text(
-              'Description',
+              'Descripción',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -138,7 +138,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
               controller: _descriptionController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'Describe what this class is about',
+                hintText: 'Descripción General de la Clase',
                 hintStyle: const TextStyle(color: Colors.white54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -153,7 +153,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
             const SizedBox(height: 24),
 
             const Text(
-              'Class Type',
+              'Tipo de Clase',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -162,14 +162,14 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
             ),
             const SizedBox(height: 12),
             _buildVisibilityOption(
-              'Private Class',
-              'Students join with code',
+              'Clase Privada',
+              'Los Alumnos se Unen Por un Código',
               ClassVisibility.private,
             ),
             const SizedBox(height: 12),
             _buildVisibilityOption(
-              'Public Class',
-              'Anyone can join',
+              'Clase Publica',
+              'Cualquier Persona se Puede Unir',
               ClassVisibility.public,
             ),
             const SizedBox(height: 32),
@@ -183,7 +183,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
                       backgroundColor: Colors.grey[700],
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Cancel'),
+                    child: const Text('Cancelar'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -205,7 +205,7 @@ class _ClassCreateScreenState extends State<ClassCreateScreen> {
                               ),
                             ),
                           )
-                        : const Text('Create'),
+                        : const Text('Crear'),
                   ),
                 ),
               ],

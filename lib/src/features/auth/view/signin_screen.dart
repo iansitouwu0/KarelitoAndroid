@@ -32,8 +32,8 @@ class _SignInScreenState extends State<SignInScreen> {
     );
 
     if (mounted) {
-      PopupHelpers.showSuccess(context, message: 'Inicio de Sesion Exitoso');
       if (success) {
+        PopupHelpers.showSuccess(context, message: 'Inicio de Sesion Exitoso');
         context.go('/home');
       } else {
         PopupHelpers.showError(context, message: authProvider.error ?? 'Inicio de Sesion Fallido');
@@ -75,7 +75,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 8),
                   
                   const Text(
-                    'Welcome back!',
+                    'Bienvenido De Regreso',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -113,7 +113,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Contraseña',
                       labelStyle: const TextStyle(color: Colors.white70),
                       prefixIcon: const Icon(Icons.lock, color: Colors.cyan),
                       suffixIcon: IconButton(
@@ -168,7 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           )
                         : const Text(
-                            'Sign In',
+                            'Iniciar Sesión',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -183,13 +183,13 @@ class _SignInScreenState extends State<SignInScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        "Don't have an account? ",
+                        "¿No Tienes Una Cuenta? ",
                         style: TextStyle(color: Colors.white70),
                       ),
                       GestureDetector(
                         onTap: () => context.go('/signup'),
                         child: const Text(
-                          'Sign Up',
+                          'Registrarse',
                           style: TextStyle(
                             color: Colors.cyan,
                             fontWeight: FontWeight.bold,

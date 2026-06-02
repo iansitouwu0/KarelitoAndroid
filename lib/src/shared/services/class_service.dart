@@ -15,7 +15,7 @@ String generateAlphanumeric(int length) {
 class ClassService {
   static final _firestore = FirebaseFirestore.instance;
 
-  /// Create a new class
+  /// crear nueva clase
   static Future<String> createClass({
     required String teacherId,
     required String className,
@@ -81,6 +81,7 @@ class ClassService {
 
       // Check if already joined
       if (classModel.studentIds.contains(studentId)) {
+        PopupService.warning('Ya Estas en Esta Clase');
         throw Exception('Already joined this class');
       }
 
@@ -134,6 +135,8 @@ class ClassService {
     }
   }
 
+ 
+
   // Get teacher's classes
   static Future<List<ClassModel>> getTeacherClasses(String teacherId) async {
     try {
@@ -175,16 +178,20 @@ class ClassService {
           await _firestore.collection('classes').doc(classId).get();
 
       if (!classDoc.exists) {
+        PopupService.error('La Clase no Fue Encontrada');
         throw Exception('Class not found');
       }
 
       final classModel = ClassModel.fromFirestore(classDoc);
 
       if (!classModel.isPublic) {
+        PopupService.warning('Esta Clase es Privada');
+
         throw Exception('This class is private');
       }
 
       if (classModel.studentIds.contains(studentId)) {
+        PopupService.warning('Ya Estas en Esta Clase');
         throw Exception('Already joined this class');
       }
 
@@ -237,7 +244,7 @@ static Future<List<ClassModel>> getPublicClasses() async {
         .map((doc) => ClassModel.fromFirestore(doc))
         .toList();
   } catch (e) {
-    PopupService.error('❌ Error getting public classes: $e');
+    PopupService.error('Error al Obtener las Clases Publicas: $e');
     throw Exception('Failed to get public classes: $e');
   }
 }
@@ -252,9 +259,9 @@ static Future<void> leaveClass({
       'studentIds': FieldValue.arrayRemove([studentId]),
     });
  
-    PopupService.success('✅ Student left class: $classId');
+    PopupService.success('Saliste de la Clase Exitosamente: $classId');
   } catch (e) {
-    PopupService.error('❌ Error leaving class: $e');
+    PopupService.error('Error al Salir de la Clase: $e');
     throw Exception('Failed to leave class: $e');
   }
 }
@@ -280,9 +287,9 @@ static Future<void> deleteClass({
  
     // Delete class
     await _firestore.collection('classes').doc(classId).delete();
-    PopupService.success('✅ Class deleted: $classId');
+    PopupService.success('Clase Eliminada: $classId');
   } catch (e) {
-    PopupService.error('❌ Error deleting class: $e');
+    PopupService.error('Error Eliminando Clase: $e');
     throw Exception('Failed to delete class: $e');
   }
 }

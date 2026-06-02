@@ -36,7 +36,7 @@ class _StudentClassDetailScreenState extends State<StudentClassDetailScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Class',
+          'Clase',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
@@ -49,7 +49,7 @@ class _StudentClassDetailScreenState extends State<StudentClassDetailScreen> {
 
           if (!snapshot.hasData || snapshot.data == null) {
             return const Center(
-              child: Text('Class not found'),
+              child: Text('Clase no Encontrada'),
             );
           }
 
@@ -92,7 +92,7 @@ class _StudentClassDetailScreenState extends State<StudentClassDetailScreen> {
 
                 // Assignments Section
                 const Text(
-                  'Assignments',
+                  'Tareas',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -108,7 +108,7 @@ class _StudentClassDetailScreenState extends State<StudentClassDetailScreen> {
                   ),
                   child: const Center(
                     child: Text(
-                      'No assignments yet',
+                      'No Hay Tareas aun',
                       style: TextStyle(color: Colors.white70),
                     ),
                   ),

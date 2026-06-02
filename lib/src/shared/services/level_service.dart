@@ -112,6 +112,7 @@ class LevelService {
     required String imagePath,
   }) async {
     try {
+      //modify to add final image
       final ref = _storage.ref('levels/$levelId/preview.jpg');
       await ref.putFile(File(imagePath));
       return await ref.getDownloadURL();
@@ -129,6 +130,7 @@ class LevelService {
       // Verificar que sea Propio
       final level = await getLevelById(levelId);
       if (level?.creatorId != creatorId) {
+        PopupService.warning('No Tienes Permiso Para Borrar Este Nivel');
         throw Exception('You do not have permission to delete this level');
       }
 

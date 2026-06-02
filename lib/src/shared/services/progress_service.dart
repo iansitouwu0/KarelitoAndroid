@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/progress_models.dart';
 import 'popup_service.dart';
 
 class ProgressService {
   static final _firestore = FirebaseFirestore.instance;
 
-  /// Get level progress for a specific level - RETURNS NULL IF NOT FOUND
+  /// Progress of a level 
   static Future<LevelProgressModel?> getLevelProgress({
     required String userId,
     required String levelId,
@@ -23,7 +22,6 @@ class ProgressService {
 
       return LevelProgressModel.fromFirestore(doc);
     } catch (e) {
-      debugPrint('❌ Error getting level progress: $e');
       PopupService.error('Error Obteniendo el Progreso del Nivel : $e');
       return null;
     }
@@ -43,7 +41,6 @@ class ProgressService {
           .map((doc) => LevelProgressModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error getting all level progress: $e');
       PopupService.error('Error Obteniendo Todo el Progreso: $e');
       return [];
     }
@@ -77,11 +74,9 @@ class ProgressService {
           .doc(levelId)
           .set(progress.toFirestore());
 
-      debugPrint('✅ Level progress saved: $levelId');
       PopupService.success(
           'Progreso Guardado, Nivel: $levelId Para el Usuario: $userId');
     } catch (e) {
-      debugPrint('❌ Error saving level progress: $e');
       PopupService.error('Error al Guardar Progreso: $e');
       throw Exception('Failed to save level progress: $e');
     }
@@ -104,7 +99,6 @@ class ProgressService {
 
       return ClassProgressModel.fromFirestore(doc);
     } catch (e) {
-      debugPrint('❌ Error getting class progress: $e');
       PopupService.error('Error Obteniendo Progreso de Clase: $e');
       return null;
     }
@@ -124,7 +118,6 @@ class ProgressService {
           .map((doc) => ClassProgressModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error getting all class progress: $e');
       PopupService.error('Error Obteniendo Progreso de Clases: $e');
       return [];
     }
@@ -159,11 +152,9 @@ class ProgressService {
           .doc(classId)
           .set(classProgress.toFirestore());
 
-      debugPrint('✅ Class progress saved for user: $userId');
       PopupService.success(
           'Progreso de Clase Guardado para Usuario: $userId');
     } catch (e) {
-      debugPrint('❌ Error saving class progress: $e');
       PopupService.error('Error al Guardar Progreso de Clase: $e');
       throw Exception('Failed to save class progress: $e');
     }

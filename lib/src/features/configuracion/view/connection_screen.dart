@@ -73,7 +73,6 @@
 
     @override
     Widget build(BuildContext context) {
-      final theme = Theme.of(context);
       final isConnected = BluetoothManager().isConnected;
 
       return Scaffold(
@@ -123,8 +122,8 @@
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: _bluetoothState
-                                    ? Colors.blue.withOpacity(0.2)
-                                    : Colors.grey.withOpacity(0.2),
+                                    ? Colors.blue
+                                    : Colors.grey,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -174,8 +173,8 @@
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: isConnected
-                                    ? Colors.green.withOpacity(0.2)
-                                    : Colors.red.withOpacity(0.2),
+                                    ? Colors.green
+                                    : Colors.red,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -233,7 +232,7 @@
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent.withOpacity(0.2),
+                            color: Colors.blueAccent,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -284,7 +283,7 @@
                                   leading: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.blueAccent.withOpacity(0.15),
+                                      color: Colors.blueAccent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(

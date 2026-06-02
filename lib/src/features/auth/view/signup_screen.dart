@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../../shared/services/services.dart';
 import '../../../shared/models/user_model.dart';
 import '../../../shared/providers/auth_provider.dart';
 
@@ -32,12 +33,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _usernameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      PopupService.error('Termine de Llenar Todos Los Campos');
       return;
     }
 
@@ -52,12 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (success) {
         context.go('/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error ?? 'Sign up failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        PopupService.error(authProvider.error ?? 'Sign up failed');
       }
     }
   }
@@ -84,7 +75,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 20),
 
                   const Text(
-                    'Create Account',
+                    'Crear Cuenta',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -98,7 +89,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextField(
                     controller: _usernameController,
                     decoration: InputDecoration(
-                      labelText: 'Username',
+                      labelText: 'Nombre de Usuario',
                       labelStyle: const TextStyle(color: Colors.white70),
                       prefixIcon: const Icon(Icons.person, color: Colors.cyan),
                       border: OutlineInputBorder(
@@ -137,7 +128,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Contraseña',
                       labelStyle: const TextStyle(color: Colors.white70),
                       prefixIcon: const Icon(Icons.lock, color: Colors.cyan),
                       suffixIcon: IconButton(
@@ -167,7 +158,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   // Role Selection
                   const Text(
-                    'Account Type',
+                    'Tipo de Cuenta',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
@@ -175,20 +166,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   const SizedBox(height: 10),
                   _buildRoleOption(
-                    'Normal User',
-                    'Practice and solve levels',
+                    'Usuario Normal',
+                    'Practica y Resuelve Niveles',
                     UserRole.normal,
                   ),
                   const SizedBox(height: 10),
                   _buildRoleOption(
-                    'Teacher',
-                    'Create classes and assign homework',
+                    'Maestro',
+                    'Crear Clases y Dejar Tareas',
                     UserRole.teacher,
                   ),
                   const SizedBox(height: 10),
                   _buildRoleOption(
-                    'Student',
-                    'Join classes and complete assignments',
+                    'Estudiante',
+                    'Unirse a Clases y Resuelve Tareas',
                     UserRole.student,
                   ),
                   const SizedBox(height: 30),
@@ -215,7 +206,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           )
                         : const Text(
-                            'Create Account',
+                            'Crea Cuentas',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -230,13 +221,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Already have an account? ',
+                        '¿Ya Tienes Cuentas? ',
                         style: TextStyle(color: Colors.white70),
                       ),
                       GestureDetector(
                         onTap: () => context.go('/signin'),
                         child: const Text(
-                          'Sign In',
+                          'Iniciar Sesión',
                           style: TextStyle(
                             color: Colors.cyan,
                             fontWeight: FontWeight.bold,
